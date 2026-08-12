@@ -16,6 +16,8 @@ const interFont = localFont({
   display: "swap",
 });
 
+import AuthProvider from "@/components/SessionProvider";
+
 export const metadata: Metadata = {
   title: "Dr. Setu — AI-Powered Virtual Clinic",
   description:
@@ -32,18 +34,20 @@ export default function RootLayout({
   return (
     <html lang="en" className={interFont.variable}>
       <body className="bg-[#0a0f1e] text-slate-100 antialiased min-h-screen">
-        {children}
-        <Toaster
-          richColors
-          position="top-right"
-          toastOptions={{
-            style: {
-              background: "#1e293b",
-              border: "1px solid rgba(255,255,255,0.1)",
-              color: "#f1f5f9",
-            },
-          }}
-        />
+        <AuthProvider>
+          {children}
+          <Toaster
+            richColors
+            position="top-right"
+            toastOptions={{
+              style: {
+                background: "#1e293b",
+                border: "1px solid rgba(255,255,255,0.1)",
+                color: "#f1f5f9",
+              },
+            }}
+          />
+        </AuthProvider>
       </body>
     </html>
   );

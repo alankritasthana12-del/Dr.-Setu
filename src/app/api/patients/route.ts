@@ -9,16 +9,6 @@ function msToWaitTime(ms: number): string {
   return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
 }
 
-async function tryDbConnect() {
-  try {
-    const dbConnect = (await import('@/lib/mongodb')).default;
-    await dbConnect();
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 // Map raw DB patient → shape the doctor dashboard expects
 function mapPatient(p: any) {
   const waitTime = p.createdAt
@@ -54,8 +44,15 @@ function mapPatient(p: any) {
 
 export async function GET() {
   try {
-    const dbAvailable = await tryDbConnect();
-
+    let dbAvailable = false;
+    try {
+      const dbConnect = (await import('@/lib/mongodb')).default;
+      await dbConnect();
+      dbAvailable = true;
+    } catch (e) {
+      console.warn("MongoDB connection failed, using in-memory fallback. Ensure IP is whitelisted in MongoDB Atlas.");
+    }
+    
     if (dbAvailable) {
       const Patient = (await import('@/models/Patient')).default;
       const patients = await Patient.find({
@@ -68,15 +65,17 @@ export async function GET() {
         success: true,
         data: patients.map(mapPatient),
       });
+    } else {
+      const inMemoryPatients: any[] = (global as any).__inMemoryPatients || [];
+      const filtered = inMemoryPatients
+        .filter((p) => ['waiting', 'in-consultation'].includes(p.status))
+        .sort((a, b) => (b.requiresDoctor ? 1 : 0) - (a.requiresDoctor ? 1 : 0));
+      
+      return NextResponse.json({
+        success: true,
+        data: filtered.map(mapPatient),
+      });
     }
-
-    // In-memory fallback
-    const store: any[] = (global as any).__inMemoryPatients || [];
-    const filtered = store
-      .filter((p) => ['waiting', 'in-consultation'].includes(p.status))
-      .sort((a, b) => (b.requiresDoctor ? 1 : 0) - (a.requiresDoctor ? 1 : 0));
-
-    return NextResponse.json({ success: true, data: filtered.map(mapPatient) });
   } catch (error: any) {
     console.error('[Patients] GET error:', error);
     return NextResponse.json(

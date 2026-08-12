@@ -20,6 +20,8 @@ export interface IPatient extends Document {
   triageLevel: 'RED' | 'YELLOW' | 'GREEN';
   status: 'waiting' | 'in-consultation' | 'completed';
   videoRoomUrl?: string;
+  imageUrl?: string;
+  workerId?: string;
 }
 
 const PatientSchema: Schema = new Schema(
@@ -49,6 +51,8 @@ const PatientSchema: Schema = new Schema(
       default: 'waiting',
     },
     videoRoomUrl: { type: String, default: '' },
+    imageUrl: { type: String, default: '' },
+    workerId: { type: String, default: '' },
   },
   {
     timestamps: true,

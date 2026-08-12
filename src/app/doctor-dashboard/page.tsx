@@ -19,17 +19,15 @@ import {
   PenTool,
   Heart,
 } from "lucide-react";
-import {
-  USE_MOCK_DATA,
-  MOCK_PATIENTS,
-  type Patient,
-} from "@/lib/mockData";
+import { type Patient } from "@/lib/types";
 import VideoCall from "@/components/VideoCall";
 import { useEffect } from "react";
+import { useSession } from "next-auth/react";
 
 export default function DoctorTerminal() {
-  const [patients, setPatients] = useState<Patient[]>(MOCK_PATIENTS);
-  const [selected, setSelected] = useState<Patient | null>(MOCK_PATIENTS[0]);
+  const { status } = useSession({ required: true });
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [selected, setSelected] = useState<Patient | null>(null);
   const [search, setSearch] = useState("");
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [isMuted, setIsMuted] = useState(false);
@@ -39,7 +37,6 @@ export default function DoctorTerminal() {
     let mounted = true;
     const fetchPts = async () => {
       try {
-        if (USE_MOCK_DATA) return;
         const res = await fetch("/api/patients");
         const d = await res.json();
         if (mounted && d.success && d.data.length > 0) {
@@ -76,6 +73,10 @@ export default function DoctorTerminal() {
     const riskMap = { RED: 0, YELLOW: 1, GREEN: 2 };
     return riskMap[a.triageLevel] - riskMap[b.triageLevel];
   });
+
+  if (status === "loading") {
+    return <div className="h-screen bg-slate-50 flex items-center justify-center font-bold text-teal-700 text-xl">Loading...</div>;
+  }
 
   return (
     <div className="h-screen flex flex-col font-sans overflow-hidden bg-slate-50">

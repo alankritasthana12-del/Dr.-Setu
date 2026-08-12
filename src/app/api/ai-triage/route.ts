@@ -74,7 +74,7 @@ function buildFallback(symptoms: string[], vitals: any) {
 }
 
 // ── Direct Gemini REST API call (no LangChain) ─────────────────────────────
-async function callGeminiDirect(symptoms: string[], vitals: any) {
+async function callGeminiDirect(symptoms: string[], vitals: any, imageUrl?: string) {
   const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
   if (!GEMINI_API_KEY) return null;
 
@@ -103,6 +103,21 @@ Respond with exactly this JSON structure:
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
+  const parts: any[] = [{ text: prompt }];
+
+  if (imageUrl) {
+    const [prefix, base64Data] = imageUrl.split(',');
+    const mimeType = prefix?.match(/:(.*?);/)?.[1] || 'image/jpeg';
+    if (base64Data) {
+      parts.push({
+        inlineData: {
+          mimeType,
+          data: base64Data
+        }
+      });
+    }
+  }
+
   try {
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
@@ -111,7 +126,7 @@ Respond with exactly this JSON structure:
         headers: { 'Content-Type': 'application/json' },
         signal: controller.signal,
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
+          contents: [{ parts }],
           generationConfig: {
             temperature: 0.3,
             maxOutputTokens: 1024,
@@ -202,7 +217,7 @@ export async function POST(req: Request) {
 
     // 2. Try Gemini first, fall back to rule-based
     console.log('[AI Triage] Calling Gemini for patient:', patientId);
-    let result = await callGeminiDirect(symptoms, vitals);
+    let result = await callGeminiDirect(symptoms, vitals, patient.imageUrl);
 
     if (!result) {
       console.warn('[AI Triage] Gemini unavailable — using rule-based fallback');

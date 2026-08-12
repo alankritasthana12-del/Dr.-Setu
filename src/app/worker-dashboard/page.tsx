@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
   Mic,
@@ -21,11 +22,7 @@ import {
   HeartPulse,
   Droplets,
 } from "lucide-react";
-import {
-  USE_MOCK_DATA,
-  MOCK_TRIAGE_RESULT,
-  type TriageResult,
-} from "@/lib/mockData";
+import { type TriageResult } from "@/lib/types";
 import VideoCall from "@/components/VideoCall";
 import { Video } from "lucide-react";
 
@@ -227,14 +224,65 @@ function SkeletonReport() {
 
 /* ─── Main View ─────────────────────────────────────────────────────────────── */
 export default function WorkerIntakeApp() {
+  const { status } = useSession({ required: true });
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
   const [isListening, setIsListening] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [triage, setTriage] = useState<TriageResult | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [currentPatientId, setCurrentPatientId] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   const recognitionRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    
+    let isMounted = true;
+    const fetchCurrentPatient = async () => {
+      try {
+        const res = await fetch("/api/patient/current");
+        const data = await res.json();
+        if (isMounted && data.success && data.data) {
+          const p = data.data;
+          setCurrentPatientId(p._id);
+          
+          if (p.videoRoomUrl && p.videoRoomUrl !== videoUrl) {
+            setVideoUrl(p.videoRoomUrl);
+          }
+          
+          if (!triage) {
+            setForm((prev) => ({
+              ...prev,
+              name: p.name || "",
+              age: p.age?.toString() || "",
+              gender: p.gender || "",
+              temp: p.vitals?.temp?.toString() || "",
+              bp: p.vitals?.bp || "",
+              pulse: p.vitals?.pulse?.toString() || "",
+              spO2: p.vitals?.spO2?.toString() || "",
+              symptoms: p.symptoms?.join(" ") || "",
+            }));
+            setTriage({
+              triageLevel: p.triageLevel,
+              requiresDoctor: p.requiresDoctor,
+              aiSummary: p.aiSummary || "Restored session.",
+              firstAidGuidance: p.recommendedFirstAid || "Restored session.",
+            });
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    
+    fetchCurrentPatient();
+    const interval = setInterval(fetchCurrentPatient, 5000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [status, videoUrl, triage]);
 
   const set = (k: keyof FormData, v: string) =>
     setForm((p) => ({ ...p, [k]: v }));
@@ -298,77 +346,73 @@ export default function WorkerIntakeApp() {
     // Sleek 2-second skeleton loading state
     await new Promise((r) => setTimeout(r, 1000));
 
-    if (USE_MOCK_DATA) {
-      const spO2 = parseFloat(form.spO2);
-      if (!isNaN(spO2) && spO2 < 92) {
-        setTriage(MOCK_TRIAGE_RESULT); // RED
-      } else if (form.symptoms.length > 50) {
-        setTriage({
-          ...MOCK_TRIAGE_RESULT,
-          triageLevel: "YELLOW",
-          aiSummary: "Patient reports ongoing symptoms that require medical review. Vitals are currently stable, but continuous monitoring is advised.",
-          firstAidGuidance: "1. Monitor vitals every hour.\n2. Keep patient comfortable.\n3. Await remote doctor video consultation.",
-        });
-      } else {
-        setTriage({
-          ...MOCK_TRIAGE_RESULT,
-          triageLevel: "GREEN",
-          aiSummary: "Patient presentation is stable. Symptoms align with common minor ailments.",
-          firstAidGuidance: "1. Standard wound care / Paracetamol for fever.\n2. No immediate referral required.",
+    try {
+      // Convert imageFile to base64 if it exists
+      let imageUrl = "";
+      if (imageFile) {
+        imageUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(imageFile);
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = error => reject(error);
         });
       }
-    } else {
-      try {
-        // 1. Create Patient in DB
-        const patientData = {
-          name: form.name,
-          age: form.age,
-          gender: form.gender,
-          contactNumber: "N/A", 
-          village: "N/A", 
-          symptoms: [form.symptoms],
-          vitals: {
-            temp: form.temp,
-            bp: form.bp,
-            pulse: form.pulse,
-            spO2: form.spO2,
-          }
-        };
 
-        const patientRes = await fetch("/api/patient", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(patientData),
-        });
-        
-        if (!patientRes.ok) throw new Error("Failed to create patient");
-        const patientJson = await patientRes.json();
-        const patientId = patientJson.data._id;
-        setCurrentPatientId(patientId);
+      // 1. Create Patient in DB
+      const patientData = {
+        name: form.name,
+        age: form.age,
+        gender: form.gender,
+        contactNumber: "N/A", 
+        village: "N/A", 
+        symptoms: [form.symptoms],
+        imageUrl,
+        vitals: {
+          temp: form.temp,
+          bp: form.bp,
+          pulse: form.pulse,
+          spO2: form.spO2,
+        }
+      };
 
-        // 2. Run AI Triage
-        const triageRes = await fetch("/api/ai-triage", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ patientId }),
-        });
-        
-        if (!triageRes.ok) throw new Error("AI Triage failed");
-        const triageData = await triageRes.json();
-        const payload = triageData.data;
-        
-        // Map backend response to UI state
-        setTriage({
-           triageLevel: payload.triageLevel || (payload.requiresDoctor ? "RED" : "GREEN"),
-           requiresDoctor: payload.requiresDoctor,
-           aiSummary: payload.aiSummary || "Summary unavailable.",
-           firstAidGuidance: payload.firstAidSuggestions || "Guidance unavailable.",
-        });
+      const patientRes = await fetch("/api/patient", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patientData),
+      });
+      
+      if (!patientRes.ok) throw new Error("Failed to create patient");
+      const patientJson = await patientRes.json();
+      const patientId = patientJson.data._id;
+      setCurrentPatientId(patientId);
 
-      } catch (err) {
-        console.error("API error: ", err);
-        setTriage(MOCK_TRIAGE_RESULT);
-      }
+      // 2. Run AI Triage
+      const triageRes = await fetch("/api/ai-triage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ patientId }),
+      });
+      
+      if (!triageRes.ok) throw new Error("AI Triage failed");
+      const triageData = await triageRes.json();
+      const payload = triageData.data;
+      
+      // Map backend response to UI state
+      setTriage({
+         triageLevel: payload.triageLevel || (payload.requiresDoctor ? "RED" : "GREEN"),
+         requiresDoctor: payload.requiresDoctor,
+         aiSummary: payload.aiSummary || "Summary unavailable.",
+         firstAidGuidance: payload.firstAidSuggestions || "Guidance unavailable.",
+      });
+
+    } catch (err) {
+      console.error("API error: ", err);
+      setTriage({
+         triageLevel: "GREEN",
+         requiresDoctor: false,
+         aiSummary: "Failed to generate assessment. Please try again.",
+         firstAidGuidance: "Ensure network connection is stable.",
+      });
     }
     setIsLoading(false);
   };
@@ -386,6 +430,10 @@ export default function WorkerIntakeApp() {
       console.error(err);
     }
   };
+
+  if (status === "loading") {
+    return <div className="min-h-screen bg-slate-50 flex items-center justify-center font-bold text-teal-700 text-xl">Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans relative pb-20">
@@ -514,13 +562,32 @@ export default function WorkerIntakeApp() {
               <h2 className="text-sm font-bold text-slate-800 uppercase tracking-widest flex items-center gap-2 mb-6">
                 <Camera className="w-4 h-4 text-teal-600" /> Documents & Photos
               </h2>
-              <div className="border-2 border-dashed border-slate-300 rounded-2xl bg-slate-50 hover:bg-teal-50 hover:border-teal-300 transition-colors cursor-pointer p-8 flex flex-col items-center justify-center text-center group">
+              <label className="border-2 border-dashed border-slate-300 rounded-2xl bg-slate-50 hover:bg-teal-50 hover:border-teal-300 transition-colors cursor-pointer p-8 flex flex-col items-center justify-center text-center group relative overflow-hidden">
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setImageFile(e.target.files[0]);
+                    }
+                  }}
+                />
                 <div className="w-14 h-14 bg-white shadow-sm rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   <Camera className="w-6 h-6 text-slate-400 group-hover:text-teal-500 transition-colors" />
                 </div>
-                <p className="font-bold text-slate-700 mb-1">Scan Prescription / Photograph Injury</p>
-                <p className="text-xs text-slate-500 font-medium">Tap to open camera viewfinder</p>
-              </div>
+                {imageFile ? (
+                  <>
+                    <p className="font-bold text-teal-700 mb-1">{imageFile.name}</p>
+                    <p className="text-xs text-teal-600 font-medium">Tap to change file</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="font-bold text-slate-700 mb-1">Scan Prescription / Photograph Injury</p>
+                    <p className="text-xs text-slate-500 font-medium">Tap to open camera or select file</p>
+                  </>
+                )}
+              </label>
             </section>
 
             {/* Submit */}

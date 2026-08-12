@@ -11,7 +11,7 @@ import {
   WifiOff,
   Wifi,
 } from "lucide-react";
-import { USE_MOCK_DATA } from "@/lib/mockData";
+
 
 export default function Home() {
   return (
@@ -30,15 +30,9 @@ export default function Home() {
           </span>
         </div>
         <div>
-          {USE_MOCK_DATA ? (
-            <span className="flex items-center gap-1.5 text-xs font-bold bg-white/20 text-white backdrop-blur-md border border-white/30 px-4 py-2 rounded-full shadow-sm">
-              <WifiOff className="w-4 h-4" /> Demo Mode
-            </span>
-          ) : (
             <span className="flex items-center gap-1.5 text-xs font-bold bg-white/20 text-white backdrop-blur-md border border-white/30 px-4 py-2 rounded-full shadow-sm">
               <Wifi className="w-4 h-4" /> System Live
             </span>
-          )}
         </div>
       </nav>
 
