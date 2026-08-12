@@ -109,9 +109,30 @@ function VitalBadge({
   );
 }
 
-function TriageReport({ result, onStartCall }: { result: TriageResult, onStartCall: () => void }) {
+function TriageReport({ result, patientId, onStartCall }: { result: TriageResult, patientId: string | null, onStartCall: () => void }) {
   const isRed = result.triageLevel === "RED";
   const isYellow = result.triageLevel === "YELLOW";
+  const [generatingPrescription, setGeneratingPrescription] = useState(false);
+  const [prescription, setPrescription] = useState<string | null>(result.aiPrescription || null);
+
+  const handleNeedPrescription = async () => {
+    if (!patientId) return;
+    setGeneratingPrescription(true);
+    try {
+      const res = await fetch("/api/ai-prescription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ patientId }),
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        setPrescription(data.data.prescription);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    setGeneratingPrescription(false);
+  };
 
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden slide-up">
@@ -188,6 +209,29 @@ function TriageReport({ result, onStartCall }: { result: TriageResult, onStartCa
           {result.firstAidGuidance}
         </p>
       </div>
+
+      {prescription ? (
+        <div className="p-6 border-b border-slate-100 bg-teal-50/50">
+          <h3 className="text-xs font-bold text-teal-800 uppercase tracking-widest flex items-center gap-2 mb-3">
+            <FileText className="w-4 h-4" />
+            AI-Generated Provisional Prescription
+          </h3>
+          <div className="text-slate-700 leading-relaxed font-medium whitespace-pre-line text-sm">
+            {prescription}
+          </div>
+        </div>
+      ) : (
+        <div className="p-6 border-b border-slate-100 flex flex-col items-start gap-3">
+          <p className="text-sm text-slate-600 font-medium">Is a doctor not available for instant consultation?</p>
+          <button 
+            onClick={handleNeedPrescription}
+            disabled={generatingPrescription}
+            className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-bold py-2 px-5 rounded-xl shadow-sm transition-colors flex items-center gap-2 text-sm"
+          >
+            {generatingPrescription ? "Generating..." : "Need Instant Prescription?"}
+          </button>
+        </div>
+      )}
 
       <div className="px-6 py-4 bg-slate-50 flex items-start gap-3">
         <Info className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
@@ -268,6 +312,7 @@ export default function WorkerIntakeApp() {
               requiresDoctor: p.requiresDoctor,
               aiSummary: p.aiSummary || "Restored session.",
               firstAidGuidance: p.recommendedFirstAid || "Restored session.",
+              aiPrescription: p.aiPrescription,
             });
           }
         }
@@ -403,6 +448,7 @@ export default function WorkerIntakeApp() {
          requiresDoctor: payload.requiresDoctor,
          aiSummary: payload.aiSummary || "Summary unavailable.",
          firstAidGuidance: payload.firstAidSuggestions || "Guidance unavailable.",
+         aiPrescription: payload.aiPrescription,
       });
 
     } catch (err) {
@@ -618,7 +664,7 @@ export default function WorkerIntakeApp() {
             ) : isLoading ? (
               <SkeletonReport />
             ) : triage ? (
-              <TriageReport result={triage} onStartCall={startVideoCall} />
+              <TriageReport result={triage} patientId={currentPatientId} onStartCall={startVideoCall} />
             ) : (
               <div className="floating-card h-[500px] flex flex-col items-center justify-center text-center p-10 text-slate-400">
                 <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">

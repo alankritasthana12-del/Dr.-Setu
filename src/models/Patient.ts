@@ -16,6 +16,7 @@ export interface IPatient extends Document {
   vitals: IVitals;
   aiSummary: string;
   recommendedFirstAid: string;
+  aiPrescription?: string;
   requiresDoctor: boolean;
   triageLevel: 'RED' | 'YELLOW' | 'GREEN';
   status: 'waiting' | 'in-consultation' | 'completed';
@@ -29,7 +30,7 @@ const PatientSchema: Schema = new Schema(
     name: { type: String, required: true },
     age: { type: Number, required: true },
     gender: { type: String, required: true },
-    contact: { type: String, required: true },
+    contact: { type: String, default: 'N/A' },
     symptoms: { type: [String], default: [] },
     vitals: {
       temp: { type: Number },
@@ -39,6 +40,7 @@ const PatientSchema: Schema = new Schema(
     },
     aiSummary: { type: String, default: '' },
     recommendedFirstAid: { type: String, default: '' },
+    aiPrescription: { type: String, default: '' },
     requiresDoctor: { type: Boolean, default: false },
     triageLevel: {
       type: String,

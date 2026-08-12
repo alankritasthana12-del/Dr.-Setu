@@ -33,7 +33,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={interFont.variable}>
-      <body className="bg-[#0a0f1e] text-slate-100 antialiased min-h-screen">
+      <body className="bg-slate-50 text-slate-900 antialiased min-h-screen">
         <AuthProvider>
           {children}
           <Toaster
@@ -41,9 +41,9 @@ export default function RootLayout({
             position="top-right"
             toastOptions={{
               style: {
-                background: "#1e293b",
-                border: "1px solid rgba(255,255,255,0.1)",
-                color: "#f1f5f9",
+                background: "#ffffff",
+                border: "1px solid #e2e8f0",
+                color: "#0f172a",
               },
             }}
           />
