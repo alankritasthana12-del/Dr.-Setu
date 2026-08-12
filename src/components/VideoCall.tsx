@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { PhoneOff, Maximize2, Minimize2 } from "lucide-react";
+import { PhoneOff } from "lucide-react";
 
 interface VideoCallProps {
   roomUrl: string;
@@ -10,7 +10,6 @@ interface VideoCallProps {
 
 export default function VideoCall({ roomUrl, onLeave }: VideoCallProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   // Build a Jitsi URL with config params embedded so the UI is clean
@@ -37,17 +36,6 @@ export default function VideoCall({ roomUrl, onLeave }: VideoCallProps) {
     setIsLoading(true);
   }, [roomUrl]);
 
-  const toggleFullscreen = () => {
-    const container = iframeRef.current?.parentElement?.parentElement;
-    if (!container) return;
-    if (!isFullscreen) {
-      container.requestFullscreen?.();
-    } else {
-      document.exitFullscreen?.();
-    }
-    setIsFullscreen(!isFullscreen);
-  };
-
   return (
     <div className="relative flex flex-col h-full w-full bg-slate-900 rounded-xl overflow-hidden shadow-2xl group">
       {/* Loading overlay */}
@@ -69,20 +57,8 @@ export default function VideoCall({ roomUrl, onLeave }: VideoCallProps) {
         title="Telemedicine Video Call"
       />
 
-      {/* Floating control bar — appears on hover */}
-      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-        <button
-          onClick={toggleFullscreen}
-          className="flex items-center gap-2 bg-slate-700/90 hover:bg-slate-600 backdrop-blur text-white font-semibold px-4 py-2.5 rounded-full text-sm shadow-xl transition-all active:scale-95"
-          title="Toggle fullscreen"
-        >
-          {isFullscreen ? (
-            <Minimize2 className="w-4 h-4" />
-          ) : (
-            <Maximize2 className="w-4 h-4" />
-          )}
-        </button>
-
+      {/* Controls — End Call only. Jitsi provides its own fullscreen button */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
         <button
           onClick={onLeave}
           className="flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white font-bold px-6 py-2.5 rounded-full text-sm shadow-xl transition-all active:scale-95"
