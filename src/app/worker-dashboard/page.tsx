@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { type TriageResult } from "@/lib/types";
 import VideoCall from "@/components/VideoCall";
-import { Video } from "lucide-react";
+import { Video, PhoneIncoming, X } from "lucide-react";
 
 /* ─── Interfaces ────────────────────────────────────────────────────────────── */
 interface FormData {
@@ -274,6 +274,7 @@ export default function WorkerIntakeApp() {
   const [isLoading, setIsLoading] = useState(false);
   const [triage, setTriage] = useState<TriageResult | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [incomingCallUrl, setIncomingCallUrl] = useState<string | null>(null);
   const [currentPatientId, setCurrentPatientId] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
 
@@ -291,8 +292,8 @@ export default function WorkerIntakeApp() {
           const p = data.data;
           setCurrentPatientId(p._id);
           
-          if (p.videoRoomUrl && p.videoRoomUrl !== videoUrl) {
-            setVideoUrl(p.videoRoomUrl);
+          if (p.videoRoomUrl && p.videoRoomUrl !== videoUrl && p.videoRoomUrl !== incomingCallUrl) {
+            setIncomingCallUrl(p.videoRoomUrl);
           }
           
           if (!triage) {
@@ -327,7 +328,7 @@ export default function WorkerIntakeApp() {
       isMounted = false;
       clearInterval(interval);
     };
-  }, [status, videoUrl, triage]);
+  }, [status, videoUrl, triage, incomingCallUrl]);
 
   const set = (k: keyof FormData, v: string) =>
     setForm((p) => ({ ...p, [k]: v }));
@@ -680,6 +681,41 @@ export default function WorkerIntakeApp() {
         </div>
 
       </main>
+
+      {/* ── INCOMING CALL MODAL ── */}
+      {incomingCallUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
+            <div className="w-24 h-24 bg-teal-100 rounded-full flex items-center justify-center mb-6 relative">
+              <div className="absolute inset-0 bg-teal-400 rounded-full animate-ping opacity-20"></div>
+              <PhoneIncoming className="w-10 h-10 text-teal-600 animate-pulse" />
+            </div>
+            
+            <h2 className="text-2xl font-black text-slate-900 mb-2">Incoming Doctor Call</h2>
+            <p className="text-slate-500 mb-8 font-medium">
+              The assigned doctor is requesting to start a secure telemedicine consultation for this patient.
+            </p>
+            
+            <div className="flex w-full gap-4">
+              <button
+                onClick={() => setIncomingCallUrl(null)}
+                className="flex-1 py-4 rounded-2xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors flex items-center justify-center gap-2"
+              >
+                <X className="w-5 h-5" /> Decline
+              </button>
+              <button
+                onClick={() => {
+                  setVideoUrl(incomingCallUrl);
+                  setIncomingCallUrl(null);
+                }}
+                className="flex-1 py-4 rounded-2xl font-bold text-white bg-green-600 hover:bg-green-700 transition-colors shadow-lg shadow-green-600/30 flex items-center justify-center gap-2 active:scale-95"
+              >
+                <Video className="w-5 h-5" /> Accept
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

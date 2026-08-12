@@ -10,7 +10,6 @@ interface VideoCallProps {
 
 export default function VideoCall({ roomUrl, onLeave }: VideoCallProps) {
   const [copied, setCopied] = useState(false);
-  const [callOpened, setCallOpened] = useState(false);
 
   const copyLink = async () => {
     try {
@@ -28,11 +27,6 @@ export default function VideoCall({ roomUrl, onLeave }: VideoCallProps) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     }
-  };
-
-  const openCall = () => {
-    window.open(roomUrl, "_blank", "noopener,noreferrer");
-    setCallOpened(true);
   };
 
   return (
@@ -86,61 +80,13 @@ export default function VideoCall({ roomUrl, onLeave }: VideoCallProps) {
         </div>
       </div>
 
-      {/* ── MAIN PANEL ── */}
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center gap-6">
-
-        {!callOpened ? (
-          <>
-            <div className="w-24 h-24 bg-teal-900/50 border-2 border-teal-500/40 rounded-full flex items-center justify-center mb-2">
-              <Video className="w-12 h-12 text-teal-400" />
-            </div>
-            <div>
-              <h3 className="text-xl font-black text-white mb-2">
-                Telemedicine Room Ready
-              </h3>
-              <p className="text-slate-400 text-sm font-medium max-w-xs leading-relaxed">
-                Click below to open the secure video room in a new tab. Both the health worker and doctor must open this link to connect.
-              </p>
-            </div>
-            <button
-              onClick={openCall}
-              className="flex items-center gap-3 bg-teal-600 hover:bg-teal-500 text-white font-black text-base px-8 py-4 rounded-full shadow-xl transition-all active:scale-95 hover:shadow-teal-500/30 hover:shadow-2xl"
-            >
-              <ExternalLink className="w-5 h-5" />
-              Open Video Call
-            </button>
-          </>
-        ) : (
-          <>
-            <div className="w-24 h-24 bg-green-900/30 border-2 border-green-500/40 rounded-full flex items-center justify-center mb-2">
-              <Video className="w-12 h-12 text-green-400 animate-pulse" />
-            </div>
-            <div>
-              <h3 className="text-xl font-black text-white mb-2">
-                Call in Progress
-              </h3>
-              <p className="text-slate-400 text-sm font-medium max-w-xs leading-relaxed">
-                Video call is open in another tab. Share the link above so the other party can join.
-              </p>
-            </div>
-
-            {/* Re-open button */}
-            <button
-              onClick={openCall}
-              className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white font-bold text-sm px-6 py-3 rounded-full transition-colors"
-            >
-              <ExternalLink className="w-4 h-4" />
-              Re-open Call Tab
-            </button>
-          </>
-        )}
-      </div>
-
-      {/* ── INSTRUCTIONS FOOTER ── */}
-      <div className="px-5 py-3 bg-slate-800/40 border-t border-slate-700/30">
-        <p className="text-[11px] text-slate-500 font-medium text-center">
-          💡 Copy the link above → open on the other laptop → both parties connect
-        </p>
+      {/* ── MAIN PANEL (EMBEDDED VIDEO) ── */}
+      <div className="flex-1 w-full bg-black relative">
+        <iframe
+          src={`${roomUrl}#config.prejoinPageEnabled=false&config.disableDeepLinking=true`}
+          allow="camera; microphone; fullscreen; display-capture; autoplay"
+          className="w-full h-full border-0 absolute inset-0"
+        />
       </div>
     </div>
   );
