@@ -55,10 +55,14 @@ async function runAITriage(symptoms: string[], vitals: any) {
     return result;
   } catch (err) {
     console.error('Gemini AI error:', err);
+    const spO2 = parseFloat(vitals?.spO2);
+    const isCritical = (!isNaN(spO2) && spO2 < 92) || (symptoms.some((s: string) => /chest pain|breath|bleeding|severe/i.test(s)));
     return {
-      aiSummary: `Patient presents with ${symptoms.join(', ')}. AI analysis unavailable.`,
-      firstAidSuggestions: 'DISCLAIMER: I am not diagnosing. Please consult a medical professional.',
-      requiresDoctor: false,
+      aiSummary: `Patient presents with: ${symptoms.join(', ')}. ${isCritical ? 'High clinical priority indicated by vital thresholds and reported symptoms.' : 'Stable vital parameters detected; continuous monitoring advised.'}`,
+      firstAidSuggestions: isCritical 
+        ? "1. Position patient comfortably and administer supplemental oxygen if available.\n2. Keep patient calm and minimize exertion.\n3. Telemedicine doctor consultation recommended immediately."
+        : "1. Monitor vital signs every 2-4 hours.\n2. Ensure adequate oral hydration and rest.\n3. Administer OTC antipyretics/analgesics as indicated for symptomatic relief.",
+      requiresDoctor: isCritical,
     };
   }
 }

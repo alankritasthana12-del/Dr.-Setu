@@ -17,11 +17,11 @@ const interFont = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "RuralCareAI — AI-Powered Virtual Clinic",
+  title: "Dr. Setu — AI-Powered Virtual Clinic",
   description:
     "Connecting rural communities with quality healthcare through AI-powered triage and live telemedicine. Bridging the last-mile healthcare gap in India.",
   keywords: ["telemedicine", "AI triage", "rural health", "virtual clinic", "ASHA workers"],
-  authors: [{ name: "RuralCareAI Team" }],
+  authors: [{ name: "Dr. Setu Team" }],
 };
 
 export default function RootLayout({
