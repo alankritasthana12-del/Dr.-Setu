@@ -1,11 +1,18 @@
 import { NextResponse } from 'next/server';
 
-// In-memory store for demo when MongoDB is not configured
-const inMemoryPatients: any[] = [];
-let idCounter = 1;
+// Pin in-memory store to global so it survives Next.js hot reloads
+function getStore(): any[] {
+  if (!(global as any).__inMemoryPatients) {
+    (global as any).__inMemoryPatients = [];
+    (global as any).__inMemoryIdCounter = 1;
+  }
+  return (global as any).__inMemoryPatients;
+}
 
 function generateId() {
-  return `demo-patient-${idCounter++}-${Date.now()}`;
+  const counter = (global as any).__inMemoryIdCounter || 1;
+  (global as any).__inMemoryIdCounter = counter + 1;
+  return `demo-patient-${counter}-${Date.now()}`;
 }
 
 async function tryDbConnect() {
@@ -24,31 +31,52 @@ export async function POST(req: Request) {
     const dbAvailable = await tryDbConnect();
 
     if (dbAvailable) {
-      const Patient = (await import('@/models/Patient')).default;
-      const newPatient = new Patient(body);
-      await newPatient.save();
-      return NextResponse.json({ success: true, data: newPatient }, { status: 201 });
-    } else {
-      // Fallback: in-memory store
-      const newPatient = {
-        _id: generateId(),
-        ...body,
-        aiSummary: '',
-        recommendedFirstAid: '',
-        requiresDoctor: false,
-        status: 'waiting',
-        createdAt: new Date().toISOString(),
-      };
-      inMemoryPatients.push(newPatient);
-      // Store globally so other routes can access it
-      (global as any).__inMemoryPatients = inMemoryPatients;
-      return NextResponse.json({ success: true, data: newPatient }, { status: 201 });
+      try {
+        const Patient = (await import('@/models/Patient')).default;
+        const newPatient = new Patient(body);
+        await newPatient.save();
+        console.log('[Patient] Saved to MongoDB:', newPatient._id);
+        return NextResponse.json({ success: true, data: newPatient }, { status: 201 });
+      } catch (dbErr: any) {
+        console.error('[Patient] MongoDB save failed, using in-memory:', dbErr.message);
+      }
     }
+
+    // In-memory fallback
+    const store = getStore();
+    const newPatient = {
+      _id: generateId(),
+      ...body,
+      aiSummary: '',
+      recommendedFirstAid: '',
+      requiresDoctor: false,
+      status: 'waiting',
+      createdAt: new Date().toISOString(),
+    };
+    store.push(newPatient);
+    console.log('[Patient] Saved to in-memory store:', newPatient._id, '| Total:', store.length);
+    return NextResponse.json({ success: true, data: newPatient }, { status: 201 });
+
   } catch (error: any) {
-    console.error('Error creating patient:', error);
+    console.error('[Patient] Unhandled error:', error);
     return NextResponse.json(
       { success: false, error: error.message || 'Internal Server Error' },
       { status: 500 }
     );
+  }
+}
+
+export async function GET() {
+  try {
+    const dbAvailable = await tryDbConnect();
+    if (dbAvailable) {
+      const Patient = (await import('@/models/Patient')).default;
+      const patients = await Patient.find({}).sort({ createdAt: -1 }).lean();
+      return NextResponse.json({ success: true, data: patients });
+    }
+    const store = getStore();
+    return NextResponse.json({ success: true, data: store });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }

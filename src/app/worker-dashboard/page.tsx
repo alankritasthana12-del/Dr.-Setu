@@ -232,7 +232,8 @@ export default function WorkerIntakeApp() {
   const [isLoading, setIsLoading] = useState(false);
   const [triage, setTriage] = useState<TriageResult | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  
+  const [currentPatientId, setCurrentPatientId] = useState<string | null>(null);
+
   const recognitionRef = useRef<any>(null);
 
   const set = (k: keyof FormData, v: string) =>
@@ -343,6 +344,7 @@ export default function WorkerIntakeApp() {
         if (!patientRes.ok) throw new Error("Failed to create patient");
         const patientJson = await patientRes.json();
         const patientId = patientJson.data._id;
+        setCurrentPatientId(patientId);
 
         // 2. Run AI Triage
         const triageRes = await fetch("/api/ai-triage", {
@@ -373,7 +375,11 @@ export default function WorkerIntakeApp() {
 
   const startVideoCall = async () => {
     try {
-      const res = await fetch("/api/video-token", { method: "POST" });
+      const res = await fetch("/api/video-token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ patientId: currentPatientId }),
+      });
       const data = await res.json();
       if (data.url) setVideoUrl(data.url);
     } catch (err) {

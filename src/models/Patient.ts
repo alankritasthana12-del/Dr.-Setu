@@ -17,7 +17,9 @@ export interface IPatient extends Document {
   aiSummary: string;
   recommendedFirstAid: string;
   requiresDoctor: boolean;
+  triageLevel: 'RED' | 'YELLOW' | 'GREEN';
   status: 'waiting' | 'in-consultation' | 'completed';
+  videoRoomUrl?: string;
 }
 
 const PatientSchema: Schema = new Schema(
@@ -36,17 +38,25 @@ const PatientSchema: Schema = new Schema(
     aiSummary: { type: String, default: '' },
     recommendedFirstAid: { type: String, default: '' },
     requiresDoctor: { type: Boolean, default: false },
+    triageLevel: {
+      type: String,
+      enum: ['RED', 'YELLOW', 'GREEN'],
+      default: 'GREEN',
+    },
     status: {
       type: String,
       enum: ['waiting', 'in-consultation', 'completed'],
       default: 'waiting',
     },
+    videoRoomUrl: { type: String, default: '' },
   },
   {
     timestamps: true,
   }
 );
 
-const Patient: Model<IPatient> = mongoose.models.Patient || mongoose.model<IPatient>('Patient', PatientSchema);
+const Patient: Model<IPatient> =
+  mongoose.models.Patient ||
+  mongoose.model<IPatient>('Patient', PatientSchema);
 
 export default Patient;

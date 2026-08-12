@@ -1,62 +1,52 @@
 import { NextResponse } from 'next/server';
 
+// Uses Jitsi Meet — free, open-source, no API key, no external calls that can fail.
+// Room name is deterministic based on patientId so worker + doctor always join the same room.
+
 export async function POST(req: Request) {
   try {
-    const { roomName } = await req.json();
-
-    if (!roomName) {
-      return NextResponse.json({ error: 'roomName is required' }, { status: 400 });
+    let patientId: string | undefined;
+    try {
+      const body = await req.json();
+      patientId = body?.patientId;
+    } catch {
+      // empty body is fine
     }
 
-    // In a real application, you would use a private token to authenticate
-    const DAILY_API_KEY = process.env.DAILY_API_KEY;
+    // Deterministic room name based on patient ID
+    const roomName = patientId
+      ? `DrSetu-${patientId.replace(/[^a-zA-Z0-9]/g, '').slice(-16)}`
+      : `DrSetu-${Date.now()}`;
 
-    if (!DAILY_API_KEY) {
-      console.warn("DAILY_API_KEY is not set. Assuming hackathon mock mode or missing env.");
-    }
+    const roomUrl = `https://meet.jit.si/${roomName}`;
 
-    const res = await fetch('https://api.daily.co/v1/rooms', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(DAILY_API_KEY && { Authorization: `Bearer ${DAILY_API_KEY}` }),
-      },
-      body: JSON.stringify({
-        name: roomName,
-        privacy: 'public', // Set public so we don't need user tokens for this hackathon phase
-        properties: {
-          exp: Math.round(Date.now() / 1000) + 60 * 60, // 1 hour expiry
-        },
-      }),
-    });
-
-    const room = await res.json();
-    
-    if (res.ok) {
-      return NextResponse.json({ success: true, url: room.url });
-    } else {
-      // If room already exists, Daily returns a specific error. We can fetch the existing room.
-      if (room.error === 'invalid-request-error' && room.info?.includes('already exists')) {
-        const getRes = await fetch(`https://api.daily.co/v1/rooms/${roomName}`, {
-          method: 'GET',
-          headers: {
-            ...(DAILY_API_KEY && { Authorization: `Bearer ${DAILY_API_KEY}` }),
-          },
+    // Optionally update patient status in DB
+    if (patientId) {
+      try {
+        const dbConnect = (await import('@/lib/mongodb')).default;
+        await dbConnect();
+        const Patient = (await import('@/models/Patient')).default;
+        await Patient.findByIdAndUpdate(patientId, {
+          videoRoomUrl: roomUrl,
+          status: 'in-consultation',
         });
-        const existingRoom = await getRes.json();
-        if (getRes.ok) {
-          return NextResponse.json({ success: true, url: existingRoom.url });
+      } catch {
+        // Non-fatal — update in-memory store as fallback
+        const store: any[] = (global as any).__inMemoryPatients || [];
+        const idx = store.findIndex((p) => p._id === patientId);
+        if (idx !== -1) {
+          store[idx].videoRoomUrl = roomUrl;
+          store[idx].status = 'in-consultation';
         }
       }
-      return NextResponse.json(
-        { success: false, error: room.info || 'Failed to create room' },
-        { status: 400 }
-      );
     }
+
+    console.log('[Video] Room created:', roomUrl);
+    return NextResponse.json({ success: true, url: roomUrl, roomName });
   } catch (error: any) {
-    console.error('Video Token Error:', error);
+    console.error('[Video Token] Error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal Server Error' },
+      { success: false, error: error.message },
       { status: 500 }
     );
   }
