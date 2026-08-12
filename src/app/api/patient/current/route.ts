@@ -5,11 +5,11 @@ import { authOptions } from '@/lib/auth';
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    if (!session || !(session.user as any)?.id) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const workerId = session.user.id;
+    const workerId = (session.user as any).id;
     const dbConnect = (await import('@/lib/mongodb')).default;
     await dbConnect();
     

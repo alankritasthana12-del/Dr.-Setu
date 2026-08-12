@@ -27,7 +27,7 @@ export async function POST(req: Request) {
       const Patient = (await import('@/models/Patient')).default;
       const newPatient = new Patient({
         ...body,
-        workerId: session?.user?.id || '',
+        workerId: (session?.user as any)?.id || '',
       });
       await newPatient.save();
       console.log('[Patient] Saved to MongoDB:', newPatient._id);
