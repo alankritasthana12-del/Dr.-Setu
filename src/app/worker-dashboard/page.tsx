@@ -21,6 +21,7 @@ import {
   Thermometer,
   HeartPulse,
   Droplets,
+  Search,
 } from "lucide-react";
 import { type TriageResult } from "@/lib/types";
 import VideoCall from "@/components/VideoCall";
@@ -119,9 +120,31 @@ function TriageReport({ result, patientId, patientLanguage, onStartCall }: { res
   const [translatedGuidance, setTranslatedGuidance] = useState<string | null>(null);
   const [translatedPrescription, setTranslatedPrescription] = useState<string | null>(null);
   const [showTranslation, setShowTranslation] = useState(false);
+  const [findingSubstitutes, setFindingSubstitutes] = useState(false);
+  const [substitutes, setSubstitutes] = useState<string | null>(null);
 
   // We need the patient's preferred language, we can pass it down as a prop or fetch it.
   // Assuming it's in the result object, let's update the interface to pass language.
+
+  const handleFindSubstitutes = async () => {
+    if (!prescription) return;
+    setFindingSubstitutes(true);
+    try {
+      const textToAnalyze = (showTranslation && translatedPrescription) ? translatedPrescription : prescription;
+      const res = await fetch("/api/medicine-substitutes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prescription: textToAnalyze }),
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        setSubstitutes(data.data);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    setFindingSubstitutes(false);
+  };
 
   const handleNeedPrescription = async () => {
     if (!patientId) return;
@@ -224,9 +247,28 @@ function TriageReport({ result, patientId, patientLanguage, onStartCall }: { res
             <FileText className="w-4 h-4" />
             AI-Generated Provisional Prescription
           </h3>
-          <div className="text-slate-700 leading-relaxed font-medium whitespace-pre-line text-sm">
+          <div className="text-slate-700 leading-relaxed font-medium whitespace-pre-line text-sm mb-4">
             {showTranslation && translatedPrescription ? translatedPrescription : prescription}
           </div>
+          {!substitutes ? (
+            <button
+              onClick={handleFindSubstitutes}
+              disabled={findingSubstitutes}
+              className="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 disabled:opacity-50 font-bold py-2 px-4 rounded-lg shadow-sm transition-colors flex items-center gap-2 text-sm"
+            >
+              <Search className="w-4 h-4" />
+              {findingSubstitutes ? "Finding Substitutes..." : "Find Medicine Substitutes"}
+            </button>
+          ) : (
+            <div className="mt-4 p-4 bg-white rounded-lg border border-teal-100 shadow-sm">
+              <h4 className="text-sm font-bold text-indigo-800 mb-2 flex items-center gap-2">
+                <Search className="w-4 h-4" /> Suggested Substitutes
+              </h4>
+              <div className="text-slate-700 text-sm whitespace-pre-line leading-relaxed font-medium">
+                {substitutes}
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <div className="p-6 border-b border-slate-100 flex flex-col items-start gap-3">

@@ -25,8 +25,8 @@ async function tryDbConnect() {
 }
 
 async function callGeminiForPrescription(symptoms: string[], vitals: any, aiSummary: string) {
-  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-  if (!GEMINI_API_KEY) return null;
+  const CEREBRAS_API_KEY = process.env.CEREBRAS_API_KEY;
+  if (!CEREBRAS_API_KEY) return null;
 
   const prompt = `You are a clinical AI assisting a rural healthcare worker. The doctor is currently unavailable, and the worker needs an instant provisional prescription for the patient.
 
@@ -50,17 +50,19 @@ Important: Start your response with a clear, bold disclaimer that this is an AI-
 
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://api.cerebras.ai/v1/chat/completions`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${CEREBRAS_API_KEY}`
+        },
         signal: controller.signal,
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.2,
-            maxOutputTokens: 500,
-          },
+          model: "llama-3.3-70b",
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.2,
+          max_completion_tokens: 500,
         }),
       }
     );
@@ -72,7 +74,7 @@ Important: Start your response with a clear, bold disclaimer that this is an AI-
     }
 
     const data = await res.json();
-    const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const raw = data?.choices?.[0]?.message?.content;
     return raw || null;
   } catch (err: any) {
     clearTimeout(timeout);
