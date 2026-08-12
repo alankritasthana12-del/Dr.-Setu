@@ -1,0 +1,52 @@
+import mongoose, { Schema, Document, Model } from 'mongoose';
+
+export interface IVitals {
+  temp: number;
+  bp: string;
+  pulse: number;
+  spO2: number;
+}
+
+export interface IPatient extends Document {
+  name: string;
+  age: number;
+  gender: string;
+  contact: string;
+  symptoms: string[];
+  vitals: IVitals;
+  aiSummary: string;
+  recommendedFirstAid: string;
+  requiresDoctor: boolean;
+  status: 'waiting' | 'in-consultation' | 'completed';
+}
+
+const PatientSchema: Schema = new Schema(
+  {
+    name: { type: String, required: true },
+    age: { type: Number, required: true },
+    gender: { type: String, required: true },
+    contact: { type: String, required: true },
+    symptoms: { type: [String], default: [] },
+    vitals: {
+      temp: { type: Number },
+      bp: { type: String },
+      pulse: { type: Number },
+      spO2: { type: Number },
+    },
+    aiSummary: { type: String, default: '' },
+    recommendedFirstAid: { type: String, default: '' },
+    requiresDoctor: { type: Boolean, default: false },
+    status: {
+      type: String,
+      enum: ['waiting', 'in-consultation', 'completed'],
+      default: 'waiting',
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const Patient: Model<IPatient> = mongoose.models.Patient || mongoose.model<IPatient>('Patient', PatientSchema);
+
+export default Patient;
