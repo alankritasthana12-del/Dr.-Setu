@@ -32,6 +32,7 @@ function mapPatient(p: any) {
     aiSummary: p.aiSummary || 'Pending AI assessment.',
     firstAidGuidance: p.recommendedFirstAid || 'Pending AI assessment.',
     aiPrescription: p.aiPrescription || '',
+    doctorNotes: p.doctorNotes || '',
     requiresDoctor: p.requiresDoctor ?? false,
     triageLevel: p.triageLevel || (p.requiresDoctor ? 'RED' : 'GREEN'),
     status: p.status || 'waiting',
@@ -56,7 +57,7 @@ export async function GET() {
     if (dbAvailable) {
       const Patient = (await import('@/models/Patient')).default;
       const patients = await Patient.find({
-        status: { $in: ['waiting', 'in-consultation'] },
+        status: { $in: ['waiting', 'in-consultation', 'completed'] },
       })
         .sort({ requiresDoctor: -1, createdAt: -1 })
         .lean();
@@ -68,7 +69,7 @@ export async function GET() {
     } else {
       const inMemoryPatients: any[] = (global as any).__inMemoryPatients || [];
       const filtered = inMemoryPatients
-        .filter((p) => ['waiting', 'in-consultation'].includes(p.status))
+        .filter((p) => ['waiting', 'in-consultation', 'completed'].includes(p.status))
         .sort((a, b) => (b.requiresDoctor ? 1 : 0) - (a.requiresDoctor ? 1 : 0));
       
       return NextResponse.json({

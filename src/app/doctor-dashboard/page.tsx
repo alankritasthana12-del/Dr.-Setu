@@ -370,7 +370,30 @@ export default function DoctorTerminal() {
                           </div>
                         </div>
                       )}
-                      <button className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 rounded-full flex items-center justify-center gap-2 transition-transform active:scale-[0.98] shadow-md text-base">
+                      <button
+                        onClick={async () => {
+                          if (!selected) return;
+                          try {
+                            const res = await fetch(`/api/patient/${selected._id}`, {
+                              method: "PUT",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ doctorNotes: rxNotes, status: "completed" }),
+                            });
+                            if (res.ok) {
+                              alert("Chart saved and signed off successfully!");
+                              setRxNotes("");
+                              setPatients(pts => pts.map(p => p._id === selected._id ? { ...p, status: "completed", doctorNotes: rxNotes } : p));
+                              setSelected(prev => prev ? { ...prev, status: "completed", doctorNotes: rxNotes } : null);
+                            } else {
+                              alert("Failed to save chart.");
+                            }
+                          } catch (err) {
+                            console.error(err);
+                            alert("Error saving chart.");
+                          }
+                        }}
+                        className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 rounded-full flex items-center justify-center gap-2 transition-transform active:scale-[0.98] shadow-md text-base"
+                      >
                         <CheckCircle className="w-5 h-5" /> Save Chart & Sign-Off
                       </button>
                     </div>

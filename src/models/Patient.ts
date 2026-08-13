@@ -17,6 +17,7 @@ export interface IPatient extends Document {
   aiSummary: string;
   recommendedFirstAid: string;
   aiPrescription?: string;
+  doctorNotes?: string;
   requiresDoctor: boolean;
   triageLevel: 'RED' | 'YELLOW' | 'GREEN';
   status: 'waiting' | 'in-consultation' | 'completed';
@@ -42,6 +43,7 @@ const PatientSchema: Schema = new Schema(
     aiSummary: { type: String, default: '' },
     recommendedFirstAid: { type: String, default: '' },
     aiPrescription: { type: String, default: '' },
+    doctorNotes: { type: String, default: '' },
     requiresDoctor: { type: Boolean, default: false },
     triageLevel: {
       type: String,

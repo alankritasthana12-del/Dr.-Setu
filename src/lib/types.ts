@@ -18,6 +18,7 @@ export interface Patient {
   aiSummary: string;
   firstAidGuidance: string;
   aiPrescription?: string;
+  doctorNotes?: string;
   requiresDoctor: boolean;
   triageLevel: "RED" | "YELLOW" | "GREEN";
   status: string;
@@ -33,4 +34,5 @@ export interface TriageResult {
   aiSummary: string;
   firstAidGuidance: string;
   aiPrescription?: string;
+  doctorNotes?: string;
 }

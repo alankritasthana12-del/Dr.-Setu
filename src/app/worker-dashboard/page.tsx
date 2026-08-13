@@ -245,6 +245,18 @@ function TriageReport({ result, patientId, patientLanguage, onStartCall }: { res
           </p>
         </div>
 
+        {result.doctorNotes && (
+          <div className="p-6 border-b border-slate-100 bg-indigo-50/50">
+            <h3 className="text-xs font-bold text-indigo-800 uppercase tracking-widest flex items-center gap-2 mb-3">
+              <CheckCircle className="w-4 h-4" />
+              Doctor's Prescription & Sign-Off
+            </h3>
+            <div className="text-slate-800 leading-relaxed font-bold whitespace-pre-line text-sm bg-white p-4 rounded-xl border border-indigo-100 shadow-sm">
+              {result.doctorNotes}
+            </div>
+          </div>
+        )}
+
         {prescription ? (
           <div className="p-6 border-b border-slate-100 bg-teal-50/50">
             <h3 className="text-xs font-bold text-teal-800 uppercase tracking-widest flex items-center gap-2 mb-3">
@@ -570,6 +582,7 @@ export default function WorkerIntakeApp() {
       aiSummary: selected.aiSummary || "Summary unavailable.",
       firstAidGuidance: selected.firstAidGuidance || "Guidance unavailable.",
       aiPrescription: selected.aiPrescription,
+      doctorNotes: selected.doctorNotes,
     };
   }
 
@@ -866,9 +879,10 @@ export default function WorkerIntakeApp() {
                   <div className="text-right">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Status</p>
                     <span className={`text-xs font-bold px-3 py-1 rounded-full ${
+                      selected.status === 'completed' ? "bg-indigo-100 text-indigo-700" :
                       selected.videoRoomUrl ? "bg-green-100 text-green-700" : "bg-slate-200 text-slate-600"
                     }`}>
-                      {selected.videoRoomUrl ? "In Consultation" : "Waiting"}
+                      {selected.status === 'completed' ? "Completed" : selected.videoRoomUrl ? "In Consultation" : "Waiting"}
                     </span>
                   </div>
                 </div>
