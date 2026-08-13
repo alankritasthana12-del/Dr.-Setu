@@ -9,7 +9,6 @@ function msToWaitTime(ms: number): string {
   return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
 }
 
-// Map raw DB patient → shape the doctor dashboard expects
 function mapPatient(p: any) {
   const waitTime = p.createdAt
     ? msToWaitTime(Date.now() - new Date(p.createdAt).getTime())
@@ -32,6 +31,7 @@ function mapPatient(p: any) {
     },
     aiSummary: p.aiSummary || 'Pending AI assessment.',
     firstAidGuidance: p.recommendedFirstAid || 'Pending AI assessment.',
+    aiPrescription: p.aiPrescription || '',
     requiresDoctor: p.requiresDoctor ?? false,
     triageLevel: p.triageLevel || (p.requiresDoctor ? 'RED' : 'GREEN'),
     status: p.status || 'waiting',
