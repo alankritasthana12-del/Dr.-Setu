@@ -28,7 +28,7 @@ Provide the response in clean markdown format, structured as a list of original 
     const timeout = setTimeout(() => controller.abort(), 15000);
 
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 
