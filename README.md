@@ -1,51 +1,100 @@
-# 🌟 DrSetu (AI-Powered Virtual Clinic for Rural Healthcare)
+<div align="center">
 
-**Hackathon Context:** IBM BOB Hacks '26 - Problem Statement 3
+# 🌟 DrSetu
 
-**Value Proposition:** Bridging the rural healthcare gap through AI-assisted triage, multi-LLM engine routing, offline resilience, and remote telemedicine. DrSetu empowers frontline health workers with instant medical reasoning and connects them seamlessly with remote doctors.
+### AI-Powered Virtual Clinic for Rural Healthcare
 
-## 🚨 The Problem & Proposed Solution
+*Bridging the rural healthcare gap through AI-assisted triage, multi-LLM engine routing, and remote telemedicine.*
 
-**The Problem:**
-Rural health centers often face a severe lack of daily available doctors, remote and inaccessible locations, and significant delays in emergency patient transfers. Frontline health workers are overwhelmed and often lack the immediate expert guidance needed to stabilize patients or make quick, accurate triage decisions.
+[![Next.js](https://img.shields.io/badge/Next.js-14-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=flat-square&logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](#-license)
+[![Hackathon](https://img.shields.io/badge/IBM_BOB_Hacks-2026-blue?style=flat-square)](#-overview)
 
-**The Solution:**
-DrSetu is a virtual clinic platform that empowers trained health workers with an AI-driven assistant. It provides AI triage, protocol-bound first-aid guidance, salt substitute analysis, and instant remote doctor video consultations. By utilizing a suite of specialized LLMs, DrSetu ensures that health workers receive high-speed, accurate, and multilingual support, ensuring critical care is not delayed even when a doctor is not physically present.
+**Built for IBM BOB Hacks '26 — Problem Statement 3**
+
+</div>
+
+---
+
+## 📋 Table of Contents
+
+- [Overview](#-overview)
+- [The Problem & Solution](#-the-problem--solution)
+- [Core Features](#-core-features)
+- [Multi-LLM Architecture](#-multi-llm-api-architecture-matrix)
+- [Tech Stack](#-tech-stack)
+- [Project Structure](#-project-directory-structure)
+- [Getting the Code](#-getting-the-code)
+- [Environment Configuration](#-environment-configuration-envlocal)
+- [Local Setup & Installation](#-local-setup--installation)
+- [Usage Guide](#-usage-guide)
+- [AI Safety & Clinical Guardrails](#-ai-safety--clinical-guardrails)
+- [Roadmap](#-roadmap)
+- [Contributing](#-contributing)
+- [License](#-license)
+
+---
+
+## 🔎 Overview
+
+DrSetu is a virtual clinic platform that empowers trained health workers with an AI-driven assistant. It provides AI triage, protocol-bound first-aid guidance, salt substitute analysis, and instant remote doctor video consultations — ensuring critical care is not delayed even when a doctor is not physically present.
+
+## 🚨 The Problem & Solution
+
+| | |
+|---|---|
+| **The Problem** | Rural health centers often face a severe lack of daily available doctors, remote and inaccessible locations, and significant delays in emergency patient transfers. Frontline health workers are overwhelmed and often lack the immediate expert guidance needed to stabilize patients or make quick, accurate triage decisions. |
+| **The Solution** | DrSetu empowers health workers with a suite of specialized LLMs, ensuring high-speed, accurate, and multilingual support — so critical care is never delayed. |
+
+---
 
 ## 🔥 Core Features
 
-*   **Multilingual Voice & Text Intake:** Seamlessly capture patient history and symptoms using Speech-to-Text in regional languages.
-*   **Medical OCR & Injury Photo Analysis:** Upload patient records, lab reports, or injury photos for multimodal AI assessment.
-*   **AI Patient Summary & Emergency Triage Risk Detection:** Automatically synthesize patient data into a concise summary and flag high-risk emergencies instantly.
-*   **Instant AI Protocol Prescription:** Generate safe, protocol-bound first-aid guidance and prescriptions when a doctor is temporarily unavailable.
-*   **Multilingual Prescription & Report Translator:** Break language barriers by translating complex medical reports and prescriptions for patients.
-*   **Medicine Salt & Generic Substitute Analyzer:** Identify affordable and available generic medicine substitutes based on active salts.
-*   **Integrated WebRTC Telemedicine:** A built-in high-quality video consultation hub connecting health workers and patients with remote doctors in real-time.
+| Feature | Description |
+|---|---|
+| 🗣️ **Multilingual Voice & Text Intake** | Seamlessly capture patient history and symptoms using Speech-to-Text in regional languages. |
+| 📄 **Medical OCR & Injury Photo Analysis** | Upload patient records, lab reports, or injury photos for multimodal AI assessment. |
+| 🧠 **AI Patient Summary & Emergency Triage** | Automatically synthesize patient data into a concise summary and flag high-risk emergencies instantly. |
+| 💊 **Instant AI Protocol Prescription** | Generate safe, protocol-bound first-aid guidance when a doctor is temporarily unavailable. |
+| 🌐 **Multilingual Report Translator** | Break language barriers by translating complex medical reports and prescriptions. |
+| 🔬 **Medicine Salt/Substitute Analyzer** | Identify affordable, available generic substitutes based on active salts. |
+| 📹 **Integrated WebRTC Telemedicine** | High-quality video consultation hub connecting health workers and remote doctors in real time. |
+
+---
 
 ## ⚡ Multi-LLM API Architecture Matrix
 
-Our solution meaningfully leverages advanced AI models to provide specialized value across different medical tasks. 
+DrSetu meaningfully leverages a suite of specialized AI models across different medical tasks:
 
 | Feature | Provider | Key Variable | Purpose & Advantage |
-| :--- | :--- | :--- | :--- |
+|---|---|---|---|
 | Patient Triage & Summary | Google AI Studio (Gemini 2.0 Flash) | `GEMINI_API_KEY` | Multimodal analysis (Images + History + Vitals) |
-| Instant AI Prescription | Cerebras Cloud (Llama 3.1) | `CEREBRAS_API_KEY` | Ultra-fast token inference (~2600+ tokens/sec) |
+| Instant AI Prescription | Cerebras Cloud (Llama 3.1) | `CEREBRAS_API_KEY` | Ultra-fast inference (~2600+ tokens/sec) |
 | Multilingual Translation | GroqCloud | `GROQ_API_KEY` | High-speed regional language conversion |
 | Medicine Salt Substitute | OpenRouter | `OPENROUTER_API_KEY` | Specialized medical reasoning & model routing |
 
-*(Note: While the project specification suggested `TRANSLATOR_API_KEY` and `SUBSTITUTE_API_KEY`, the implementation actively uses `GROQ_API_KEY` and `OPENROUTER_API_KEY` to route requests to the most performant models for these specific features.)*
+> **Note:** While the original specification suggested `TRANSLATOR_API_KEY` and `SUBSTITUTE_API_KEY`, the implementation uses `GROQ_API_KEY` and `OPENROUTER_API_KEY` to route requests to the most performant models for these features.
+
+---
 
 ## 🛠️ Tech Stack
 
-*   **Frontend:** Next.js 14 (App Router), TypeScript, Tailwind CSS (Clinical Teal/White Aesthetic), Lucide React, Shadcn UI
-*   **Backend:** Next.js API Routes, Node.js, LangChain
-*   **Database:** MongoDB Atlas (Mongoose Schemas)
-*   **Auth:** Kinde Auth (with Google OAuth 2.0 Integration)
-*   **Video / Telemedicine:** WebRTC / Daily.co
+<table>
+<tr><td><b>Frontend</b></td><td>Next.js 14 (App Router), TypeScript, Tailwind CSS, Lucide React, Shadcn UI</td></tr>
+<tr><td><b>Backend</b></td><td>Next.js API Routes, Node.js, LangChain</td></tr>
+<tr><td><b>Database</b></td><td>MongoDB Atlas (Mongoose Schemas)</td></tr>
+<tr><td><b>Auth</b></td><td>Kinde Auth (Google OAuth 2.0)</td></tr>
+<tr><td><b>Telemedicine</b></td><td>WebRTC / Daily.co</td></tr>
+</table>
+
+---
 
 ## 📂 Project Directory Structure
 
-```text
+```
 Dr. Setu/
 ├── app/
 │   ├── api/
@@ -90,9 +139,54 @@ Dr. Setu/
 └── tsconfig.json
 ```
 
+---
+
+## 📥 Getting the Code
+
+### Prerequisites
+
+- [Git](https://git-scm.com/downloads)
+- [Node.js](https://nodejs.org/) (v18+)
+- A [MongoDB Atlas](https://www.mongodb.com/atlas) cluster
+
+### Clone the Repository
+
+> Replace `<repository_url>` below with the actual GitHub URL of this project (e.g. `https://github.com/<your-username>/dr-setu.git`).
+
+```bash
+git clone <repository_url>
+cd "Dr. Setu"
+```
+
+<details>
+<summary><b>Don't have a remote repo yet? Push a local project instead</b></summary>
+
+```bash
+cd "Dr. Setu"
+git init
+git add .
+git commit -m "Initial commit - DrSetu virtual clinic platform"
+git remote add origin <repository_url>
+git branch -M main
+git push -u origin main
+```
+
+</details>
+
+<details>
+<summary><b>Keeping your local copy up to date</b></summary>
+
+```bash
+git pull origin main
+```
+
+</details>
+
+---
+
 ## ⚙️ Environment Configuration (`.env.local`)
 
-Create a `.env.local` file in the root directory and populate it with the following keys. 
+Create a `.env.local` file in the project root and populate it with the following keys:
 
 ```env
 # MongoDB Atlas
@@ -121,55 +215,84 @@ KINDE_SITE_URL="http://localhost:3000"
 KINDE_POST_LOGOUT_REDIRECT_URL="http://localhost:3000"
 KINDE_POST_LOGIN_REDIRECT_URL="http://localhost:3000/doctor-dashboard"
 ```
-*(Note: Kinde Auth is implemented in this workspace as a robust alternative to NextAuth.js. Google OAuth 2.0 setup is managed securely through the Kinde Dashboard.)*
 
-## 🚀 Step-by-Step Local Setup & Installation
+> **Note:** Kinde Auth is implemented as a robust alternative to NextAuth.js. Google OAuth 2.0 setup is managed securely through the Kinde Dashboard.
 
-1.  **Clone the repository:**
-    ```bash
-    git clone <repository_url>
-    cd "Dr. Setu"
-    ```
+---
 
-2.  **Install dependencies:**
-    ```bash
-    npm install
-    ```
+## 🚀 Local Setup & Installation
 
-3.  **Database Connection:**
-    Ensure you have a MongoDB cluster running. Get your connection string and add it to `.env.local` under `MONGODB_URI`.
+| Step | Command / Action |
+|---|---|
+| 1. Install dependencies | `npm install` |
+| 2. Configure database | Add your MongoDB connection string to `.env.local` under `MONGODB_URI` |
+| 3. Set up Google OAuth via Kinde | See details below |
+| 4. Run the dev server | `npm run dev` |
 
-4.  **Google OAuth 2.0 Setup (via Kinde):**
-    *   Create an account on Kinde and set up a new application.
-    *   Navigate to **Authentication -> Social connections -> Google**.
-    *   Provide your Google Cloud Console Client ID and Client Secret in Kinde.
-    *   In Google Cloud Console, ensure the authorized redirect URI matches Kinde's callback URL (e.g., `https://<your_kinde_domain>/login/callback`).
-    *   Update the `.env.local` with your Kinde credentials.
+**Google OAuth 2.0 Setup (via Kinde):**
 
-5.  **Start the Development Server:**
-    ```bash
-    npm run dev
-    ```
-    The application will be available at `http://localhost:3000`.
+1. Create an account on [Kinde](https://kinde.com/) and set up a new application.
+2. Navigate to **Authentication → Social connections → Google**.
+3. Provide your Google Cloud Console Client ID and Client Secret in Kinde.
+4. In Google Cloud Console, ensure the authorized redirect URI matches Kinde's callback URL (e.g., `https://<your_kinde_domain>/login/callback`).
+5. Update `.env.local` with your Kinde credentials.
 
-## 📱 Demo Workflow & Dashboard Guide
+Once configured, start the app:
 
-*   **Health Worker Portal (`/worker-dashboard`):** 
-    The command center for frontline health workers. Here they can input patient vitals, use voice intake for symptom description, upload injury photos, and run the AI triage to get an immediate risk assessment and suggested first-aid protocols.
-    
-*   **Remote Doctor Portal (`/doctor-dashboard`):** 
-    The hub for specialized doctors. Doctors can view the live patient queue, receive urgent triage alerts, review the AI pre-assessment and synthesized summaries, and launch a WebRTC video consultation instantly to provide expert care.
+```bash
+npm run dev
+```
+
+The application will be available at **[http://localhost:3000](http://localhost:3000)**.
+
+---
+
+## 📱 Usage Guide
+
+### 🏥 Health Worker Portal — `/worker-dashboard`
+The command center for frontline health workers. Input patient vitals, use voice intake for symptom description, upload injury photos, and run AI triage to get an immediate risk assessment and suggested first-aid protocols.
+
+### 👨‍⚕️ Remote Doctor Portal — `/doctor-dashboard`
+The hub for specialized doctors. View the live patient queue, receive urgent triage alerts, review AI pre-assessments and synthesized summaries, and launch a WebRTC video consultation instantly.
+
+---
 
 ## 🛡️ AI Safety & Clinical Guardrails
 
-DrSetu strictly adheres to clinical safety standards. **The AI acts purely as a clinical decision support system, never replacing the doctor.** 
-*   **Separation of Duties:** AI suggestions (such as first-aid protocols and salt substitutes) are clearly marked as advisory and require review by a certified medical professional or are limited to safe, non-invasive first-aid steps for health workers.
-*   **Emergency Guardrails:** The triage system is programmed to flag critical symptoms aggressively. If a high-risk scenario is detected, the AI mandates an immediate hospital referral and bypasses standard wait queues.
+DrSetu strictly adheres to clinical safety standards. The AI acts purely as a **clinical decision support system** — it never replaces the doctor.
 
-## 🔮 Future Scope & Roadmap
-
-*   **Offline LAN Synchronization:** Implementing local LLMs (like Ollama or Phi-3) to ensure continuous triage and protocol generation even during total internet blackouts.
-*   **ABDM Integration:** Direct synchronization with the Ayushman Bharat Digital Mission (ABDM) to fetch and update national digital health records seamlessly.
+- **Separation of Duties** — AI suggestions (first-aid protocols, salt substitutes) are clearly marked as advisory and require review by a certified medical professional, or are limited to safe, non-invasive first-aid steps.
+- **Emergency Guardrails** — The triage system aggressively flags critical symptoms. High-risk scenarios trigger a mandatory immediate hospital referral, bypassing standard wait queues.
 
 ---
-*Built for IBM BOB Hacks '26*
+
+## 🔮 Roadmap
+
+- [ ] **Offline LAN Synchronization** — Local LLMs (Ollama / Phi-3) for continuous triage during internet blackouts.
+- [ ] **ABDM Integration** — Direct sync with the Ayushman Bharat Digital Mission for national digital health records.
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome. To propose a change:
+
+1. Fork the repository.
+2. Create a feature branch: `git checkout -b feature/your-feature-name`
+3. Commit your changes: `git commit -m "Add your feature"`
+4. Push to your branch: `git push origin feature/your-feature-name`
+5. Open a Pull Request.
+
+---
+
+## 📄 License
+
+This project was built for **IBM BOB Hacks '26**. Licensing details to be added by the project maintainers.
+
+---
+
+<div align="center">
+
+**Built with ❤️ for IBM BOB Hacks '26**
+
+</div>
