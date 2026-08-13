@@ -20,7 +20,6 @@ function mapPatient(p: any) {
     age: p.age,
     gender: p.gender,
     contact: p.contact,
-    language: p.language || 'Hindi',
     symptoms: Array.isArray(p.symptoms) ? p.symptoms : [p.symptoms],
     symptomDuration: p.symptomDuration || 'Unknown',
     vitals: {
