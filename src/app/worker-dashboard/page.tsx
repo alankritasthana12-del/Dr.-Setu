@@ -431,8 +431,6 @@ export default function WorkerIntakeApp() {
     e.preventDefault();
     setIsLoading(true);
 
-    await new Promise((r) => setTimeout(r, 1000));
-
     try {
       let imageUrl = "";
       if (imageFile) {
@@ -468,24 +466,33 @@ export default function WorkerIntakeApp() {
       
       if (!patientRes.ok) throw new Error("Failed to create patient");
       const patientJson = await patientRes.json();
-      const patientId = patientJson.data._id;
+      const newPatient = patientJson.data;
+      const patientId = newPatient._id;
 
-      await fetch("/api/ai-triage", {
+      // Select patient immediately to show skeleton loader while triage is running
+      setForm(EMPTY_FORM);
+      setImageFile(null);
+      setSelected(newPatient);
+      setPatients(prev => [newPatient, ...prev]);
+
+      // Run AI Triage asynchronously
+      fetch("/api/ai-triage", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ patientId }),
+      }).then(async () => {
+        const ptsRes = await fetch("/api/patients", { cache: "no-store" });
+        const ptsData = await ptsRes.json();
+        if (ptsData.success) {
+          setPatients(ptsData.data);
+          const updatedPt = ptsData.data.find((p: Patient) => p._id === patientId);
+          if (updatedPt) {
+             setSelected(current => current?._id === patientId ? updatedPt : current);
+          }
+        }
+      }).catch(err => {
+        console.error("Triage error: ", err);
       });
-      
-      setForm(EMPTY_FORM);
-      setImageFile(null);
-      
-      const ptsRes = await fetch("/api/patients");
-      const ptsData = await ptsRes.json();
-      if (ptsData.success) {
-        setPatients(ptsData.data);
-        const newPt = ptsData.data.find((p: Patient) => p._id === patientId);
-        if (newPt) setSelected(newPt);
-      }
 
     } catch (err) {
       console.error("API error: ", err);
@@ -527,7 +534,7 @@ export default function WorkerIntakeApp() {
   }
 
   let triageResult: TriageResult | null = null;
-  if (selected) {
+  if (selected && selected.triageLevel) {
     triageResult = {
       triageLevel: selected.triageLevel,
       requiresDoctor: selected.requiresDoctor,

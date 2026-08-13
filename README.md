@@ -59,24 +59,20 @@ DrSetu is a virtual clinic platform that empowers trained health workers with an
 | 📄 **Medical OCR & Injury Photo Analysis** | Upload patient records, lab reports, or injury photos for multimodal AI assessment. |
 | 🧠 **AI Patient Summary & Emergency Triage** | Automatically synthesize patient data into a concise summary and flag high-risk emergencies instantly. |
 | 💊 **Instant AI Protocol Prescription** | Generate safe, protocol-bound first-aid guidance when a doctor is temporarily unavailable. |
-| 🌐 **Multilingual Report Translator** | Break language barriers by translating complex medical reports and prescriptions. |
 | 🔬 **Medicine Salt/Substitute Analyzer** | Identify affordable, available generic substitutes based on active salts. |
 | 📹 **Integrated WebRTC Telemedicine** | High-quality video consultation hub connecting health workers and remote doctors in real time. |
 
 ---
 
-## ⚡ Multi-LLM API Architecture Matrix
+## ⚡ AI Architecture Matrix
 
-DrSetu meaningfully leverages a suite of specialized AI models across different medical tasks:
+DrSetu leverages Gemini AI models across different medical tasks:
 
 | Feature | Provider | Key Variable | Purpose & Advantage |
 |---|---|---|---|
-| Patient Triage & Summary | Google AI Studio (Gemini 2.0 Flash) | `GEMINI_API_KEY` | Multimodal analysis (Images + History + Vitals) |
-| Instant AI Prescription | Cerebras Cloud (Llama 3.1) | `CEREBRAS_API_KEY` | Ultra-fast inference (~2600+ tokens/sec) |
-| Multilingual Translation | GroqCloud | `GROQ_API_KEY` | High-speed regional language conversion |
-| Medicine Salt Substitute | OpenRouter | `OPENROUTER_API_KEY` | Specialized medical reasoning & model routing |
-
-> **Note:** While the original specification suggested `TRANSLATOR_API_KEY` and `SUBSTITUTE_API_KEY`, the implementation uses `GROQ_API_KEY` and `OPENROUTER_API_KEY` to route requests to the most performant models for these features.
+| Patient Triage & Summary | Google AI Studio (Gemini 3.5 Flash) | `GEMINI_API_KEY` | Multimodal analysis (Images + History + Vitals) |
+| Instant AI Prescription | Google AI Studio (Gemini 3.5 Flash) | `GEMINI_API_KEY` | Fast and accurate inference for medical protocols |
+| Medicine Salt Substitute | Google AI Studio (Gemini 3.5 Flash) | `GEMINI_API_KEY` | Specialized medical reasoning and substitute matching |
 
 ---
 
@@ -104,7 +100,6 @@ Dr. Setu/
 │   │   ├── medicine-substitutes/
 │   │   ├── patient/
 │   │   ├── patients/
-│   │   ├── translate/
 │   │   └── video-token/
 │   ├── doctor-dashboard/
 │   │   └── page.tsx
@@ -192,17 +187,8 @@ Create a `.env.local` file in the project root and populate it with the followin
 # MongoDB Atlas
 MONGODB_URI="your_mongodb_connection_string"
 
-# 1. AI Summary & Assessment (Multimodal)
+# AI API Key (Used for Triage, Prescriptions, and Substitutes)
 GEMINI_API_KEY="your_gemini_api_key"
-
-# 2. Instant AI Prescription (Lightning fast inference)
-CEREBRAS_API_KEY="your_cerebras_api_key"
-
-# 3. Multilingual Translation
-GROQ_API_KEY="your_groq_api_key"
-
-# 4. Medicine Salt/Substitute Analyzer
-OPENROUTER_API_KEY="your_openrouter_api_key"
 
 # Daily.co API Key – for WebRTC video calls
 DAILY_API_KEY="your_daily_api_key"

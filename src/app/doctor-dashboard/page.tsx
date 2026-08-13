@@ -18,6 +18,7 @@ import {
   CheckCircle,
   PenTool,
   Heart,
+  X,
 } from "lucide-react";
 import { type Patient } from "@/lib/types";
 import VideoCall from "@/components/VideoCall";
@@ -42,6 +43,7 @@ export default function DoctorTerminal() {
   const [translatedSummary, setTranslatedSummary] = useState<string | null>(null);
   const [translatedGuidance, setTranslatedGuidance] = useState<string | null>(null);
   const [translatedPrescription, setTranslatedPrescription] = useState<string | null>(null);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
   const handleFindSubstitutes = async () => {
     const textToAnalyze = `${rxNotes}\n\n${selected?.aiPrescription || ""}`;
@@ -430,7 +432,7 @@ export default function DoctorTerminal() {
                         <p className="text-sm font-bold text-slate-700">Document Scan Available</p>
                         <p className="text-xs text-slate-500 mt-1 font-medium">AI successfully extracted text from the upload.</p>
                         <button 
-                          onClick={() => window.open(selected.imageUrl, '_blank')}
+                          onClick={() => setIsImageModalOpen(true)}
                           className="mt-4 text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 px-4 py-2 rounded-full transition-colors border border-teal-200"
                         >
                           View Document
@@ -520,6 +522,26 @@ export default function DoctorTerminal() {
             </div>
           )}
         </main>
+
+        {/* Image Modal */}
+        {isImageModalOpen && selected?.imageUrl && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 md:p-8" onClick={() => setIsImageModalOpen(false)}>
+            <div className="relative max-w-5xl w-full max-h-full flex flex-col items-center justify-center bg-slate-900 p-2 rounded-2xl border border-slate-800 shadow-2xl" onClick={e => e.stopPropagation()}>
+              <div className="absolute top-4 right-4 z-10 flex gap-2">
+                <button 
+                  onClick={() => setIsImageModalOpen(false)}
+                  className="bg-black/50 hover:bg-black text-white p-2 rounded-full transition-colors backdrop-blur-md"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <div className="w-full h-full overflow-auto rounded-xl bg-slate-950 flex items-center justify-center min-h-[50vh]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={selected.imageUrl} alt="OCR Document Scan" className="max-w-full max-h-[85vh] object-contain rounded-lg" />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
