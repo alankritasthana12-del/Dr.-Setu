@@ -394,7 +394,7 @@ export default function WorkerIntakeApp() {
     let mounted = true;
     const fetchPts = async () => {
       try {
-        const res = await fetch("/api/patients");
+        const res = await fetch("/api/patients", { cache: "no-store" });
         const d = await res.json();
         if (mounted && d.success) {
           setPatients(d.data);
