@@ -10,7 +10,6 @@ import {
   Activity,
   User,
   Clock,
-  Languages,
   ChevronLeft,
   Info,
   CheckCircle,
@@ -36,7 +35,6 @@ interface FormData {
   name: string;
   age: string;
   gender: string;
-  language: string;
   symptomDuration: string;
   temp: string;
   bp: string;
@@ -49,7 +47,6 @@ const EMPTY_FORM: FormData = {
   name: "",
   age: "",
   gender: "",
-  language: "English",
   symptomDuration: "",
   temp: "",
   bp: "",
@@ -62,7 +59,6 @@ const DEMO_PATIENT: FormData = {
   name: "Ramesh Kumar",
   age: "58",
   gender: "Male",
-  language: "Hindi",
   symptomDuration: "3 hours",
   temp: "99.1",
   bp: "158/98",
@@ -108,25 +104,16 @@ function VitalBadge({
   );
 }
 
-function TriageReport({ result, patientId, patientLanguage, onStartCall }: { result: TriageResult, patientId: string | null, patientLanguage: string, onStartCall: () => void }) {
+function TriageReport({ result, patientId, onStartCall }: { result: TriageResult, patientId: string | null, onStartCall: () => void }) {
   const isRed = result.triageLevel === "RED";
   const isYellow = result.triageLevel === "YELLOW";
   const [generatingPrescription, setGeneratingPrescription] = useState(false);
   const [prescription, setPrescription] = useState<string | null>(result.aiPrescription || null);
-  const [isTranslating, setIsTranslating] = useState(false);
-  const [translatedSummary, setTranslatedSummary] = useState<string | null>(null);
-  const [translatedGuidance, setTranslatedGuidance] = useState<string | null>(null);
-  const [translatedPrescription, setTranslatedPrescription] = useState<string | null>(null);
-  const [showTranslation, setShowTranslation] = useState(false);
   const [findingSubstitutes, setFindingSubstitutes] = useState(false);
   const [substitutes, setSubstitutes] = useState<string | null>(null);
 
   useEffect(() => {
     setPrescription(result.aiPrescription || null);
-    setShowTranslation(false);
-    setTranslatedSummary(null);
-    setTranslatedGuidance(null);
-    setTranslatedPrescription(null);
     setSubstitutes(null);
   }, [result]);
 
@@ -134,7 +121,7 @@ function TriageReport({ result, patientId, patientLanguage, onStartCall }: { res
     if (!prescription) return;
     setFindingSubstitutes(true);
     try {
-      const textToAnalyze = (showTranslation && translatedPrescription) ? translatedPrescription : prescription;
+      const textToAnalyze = prescription;
       const res = await fetch("/api/medicine-substitutes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -231,7 +218,7 @@ function TriageReport({ result, patientId, patientLanguage, onStartCall }: { res
             Clinical Summary
           </h3>
           <p className="text-slate-700 leading-relaxed font-medium">
-            {showTranslation && translatedSummary ? translatedSummary : result.aiSummary}
+            {result.aiSummary}
           </p>
         </div>
 
@@ -241,7 +228,7 @@ function TriageReport({ result, patientId, patientLanguage, onStartCall }: { res
             First-Aid Guidance
           </h3>
           <p className="text-slate-700 leading-relaxed font-medium whitespace-pre-line">
-            {showTranslation && translatedGuidance ? translatedGuidance : result.firstAidGuidance}
+            {result.firstAidGuidance}
           </p>
         </div>
 
@@ -264,7 +251,7 @@ function TriageReport({ result, patientId, patientLanguage, onStartCall }: { res
               AI-Generated Provisional Prescription
             </h3>
             <div className="text-slate-700 leading-relaxed font-medium whitespace-pre-line text-sm mb-4">
-              {showTranslation && translatedPrescription ? translatedPrescription : prescription}
+              {prescription}
             </div>
             {!substitutes ? (
               <button
@@ -299,60 +286,6 @@ function TriageReport({ result, patientId, patientLanguage, onStartCall }: { res
           </div>
         )}
       </div>
-
-      {patientLanguage && patientLanguage !== "English" && patientLanguage !== "EN" && (
-        <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2">
-            <Languages className="w-5 h-5 text-indigo-600" />
-            <span className="text-sm font-semibold text-slate-700">Patient Language: {patientLanguage}</span>
-          </div>
-          <button
-            onClick={async () => {
-              if (showTranslation) {
-                setShowTranslation(false);
-                return;
-              }
-              if (translatedSummary) {
-                setShowTranslation(true);
-                return;
-              }
-              setIsTranslating(true);
-              try {
-                const sumRes = await fetch("/api/translate", {
-                  method: "POST", headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ text: result.aiSummary, targetLanguage: patientLanguage })
-                });
-                const sumData = await sumRes.json();
-                if (sumData.success) setTranslatedSummary(sumData.data);
-
-                const guiRes = await fetch("/api/translate", {
-                  method: "POST", headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ text: result.firstAidGuidance, targetLanguage: patientLanguage })
-                });
-                const guiData = await guiRes.json();
-                if (guiData.success) setTranslatedGuidance(guiData.data);
-
-                if (prescription) {
-                   const preRes = await fetch("/api/translate", {
-                     method: "POST", headers: { "Content-Type": "application/json" },
-                     body: JSON.stringify({ text: prescription, targetLanguage: patientLanguage })
-                   });
-                   const preData = await preRes.json();
-                   if (preData.success) setTranslatedPrescription(preData.data);
-                }
-                setShowTranslation(true);
-              } catch (e) {
-                console.error("Translation error", e);
-              }
-              setIsTranslating(false);
-            }}
-            disabled={isTranslating}
-            className="text-sm font-bold bg-indigo-100 text-indigo-700 hover:bg-indigo-200 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
-          >
-            {isTranslating ? "Translating..." : showTranslation ? "Show Original (English)" : `Translate to ${patientLanguage}`}
-          </button>
-        </div>
-      )}
 
       <div className="px-6 py-4 bg-slate-50 flex items-start gap-3 shrink-0 border-t border-slate-100">
         <Info className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
@@ -445,7 +378,7 @@ export default function WorkerIntakeApp() {
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.lang = form.language === "Hindi" ? "hi-IN" : "en-IN";
+    recognition.lang = "en-IN";
 
     let finalTranscript = form.symptoms ? form.symptoms + " " : "";
 
@@ -495,7 +428,6 @@ export default function WorkerIntakeApp() {
         name: form.name,
         age: form.age,
         gender: form.gender,
-        preferredLanguage: form.language,
         contactNumber: "N/A", 
         village: "N/A", 
         symptoms: [form.symptoms],
@@ -751,27 +683,6 @@ export default function WorkerIntakeApp() {
                             <option value="Female">Female</option>
                           </select>
                         </div>
-                        <div>
-                          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Language</label>
-                          <select
-                            required
-                            value={form.language}
-                            onChange={(e) => set("language", e.target.value)}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 teal-input-focus font-medium appearance-none"
-                          >
-                            <option value="English">English</option>
-                            <option value="Hindi">Hindi</option>
-                            <option value="Bengali">Bengali</option>
-                            <option value="Telugu">Telugu</option>
-                            <option value="Marathi">Marathi</option>
-                            <option value="Tamil">Tamil</option>
-                            <option value="Urdu">Urdu</option>
-                            <option value="Gujarati">Gujarati</option>
-                            <option value="Kannada">Kannada</option>
-                            <option value="Odia">Odia</option>
-                            <option value="Malayalam">Malayalam</option>
-                          </select>
-                        </div>
                       </div>
                     </section>
 
@@ -891,7 +802,6 @@ export default function WorkerIntakeApp() {
                   <TriageReport 
                     result={triageResult} 
                     patientId={selected._id} 
-                    patientLanguage={selected.language || "English"} 
                     onStartCall={() => startVideoCall(selected._id)} 
                   />
                 ) : (

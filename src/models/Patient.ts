@@ -24,7 +24,6 @@ export interface IPatient extends Document {
   videoRoomUrl?: string;
   imageUrl?: string;
   workerId?: string;
-  preferredLanguage?: string;
 }
 
 const PatientSchema: Schema = new Schema(
@@ -58,7 +57,6 @@ const PatientSchema: Schema = new Schema(
     videoRoomUrl: { type: String, default: '' },
     imageUrl: { type: String, default: '' },
     workerId: { type: String, default: '' },
-    preferredLanguage: { type: String, default: 'EN' },
   },
   {
     timestamps: true,
