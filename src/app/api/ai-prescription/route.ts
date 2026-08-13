@@ -46,11 +46,11 @@ Provide a provisional prescription containing:
 Important: Start your response with a clear, bold disclaimer that this is an AI-generated provisional prescription and a registered doctor must be consulted as soon as possible. Format the output in clean markdown.`;
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 15000);
+  const timeout = setTimeout(() => controller.abort(), 30000);
 
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 
@@ -61,7 +61,7 @@ Important: Start your response with a clear, bold disclaimer that this is an AI-
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             temperature: 0.2,
-            maxOutputTokens: 500,
+            maxOutputTokens: 2048,
           },
           safetySettings: [
             {
