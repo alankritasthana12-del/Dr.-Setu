@@ -24,6 +24,7 @@ export interface Patient {
   imageUrl?: string;
   createdAt: string;
   waitTime: string;
+  videoRoomUrl?: string;
 }
 
 export interface TriageResult {
