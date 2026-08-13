@@ -157,15 +157,69 @@ export default function DoctorTerminal() {
     }
   };
 
-  const filteredPatients = patients.filter(
+  const searchedPatients = patients.filter(
     (p) =>
-      p.status !== "completed" &&
-      (p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.symptoms.join(" ").toLowerCase().includes(search.toLowerCase()))
-  ).sort((a, b) => {
-    const riskMap = { RED: 0, YELLOW: 1, GREEN: 2 };
-    return riskMap[a.triageLevel] - riskMap[b.triageLevel];
-  });
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      p.symptoms.join(" ").toLowerCase().includes(search.toLowerCase())
+  );
+
+  const waitingPatients = searchedPatients
+    .filter((p) => p.status !== "completed")
+    .sort((a, b) => {
+      const riskMap = { RED: 0, YELLOW: 1, GREEN: 2 };
+      return riskMap[a.triageLevel] - riskMap[b.triageLevel];
+    });
+
+  const completedPatients = searchedPatients
+    .filter((p) => p.status === "completed")
+    .sort((a, b) => {
+      const riskMap = { RED: 0, YELLOW: 1, GREEN: 2 };
+      return riskMap[a.triageLevel] - riskMap[b.triageLevel];
+    });
+
+  const renderPatientCard = (p: Patient, isCompleted: boolean = false) => {
+    const isSelected = selected?._id === p._id;
+    const isUrgent = p.vitals.spO2 < 92;
+    
+    return (
+      <button
+        key={p._id}
+        onClick={() => setSelected(p)}
+        className={`w-full text-left p-4 rounded-2xl transition-all relative overflow-hidden ${isCompleted ? 'opacity-80' : ''} ${
+          isSelected
+            ? "bg-teal-700 shadow-md border border-teal-500/30"
+            : "bg-teal-800/40 hover:bg-teal-800/80 border border-transparent"
+        }`}
+      >
+        {isUrgent && !isCompleted && (
+          <div className="absolute top-0 right-0 w-8 h-8 bg-rose-500 rounded-bl-full flex items-start justify-end pr-1.5 pt-1.5">
+             <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+          </div>
+        )}
+        <div className="flex justify-between items-start mb-1 pr-6">
+          <span className="font-bold text-white text-base">{p.name}</span>
+        </div>
+        <div className="flex justify-between items-center text-xs text-teal-200 font-medium mb-3">
+          <span>{p.age}y · {p.gender}</span>
+          {!isCompleted && (
+            <span className="flex items-center gap-1">
+              <Clock className="w-3 h-3" /> {p.waitTime}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center justify-between pt-3 border-t border-teal-700/50">
+          <span className="text-[10px] font-bold text-teal-400 tracking-widest uppercase">SpO2</span>
+          <span
+            className={`text-sm font-black ${
+              isUrgent && !isCompleted ? "text-rose-400" : "text-white"
+            }`}
+          >
+            {p.vitals.spO2}%
+          </span>
+        </div>
+      </button>
+    );
+  };
 
   if (authLoading || !isAuthenticated) {
     return <div className="h-screen bg-slate-50 flex items-center justify-center font-bold text-teal-700 text-xl">Loading...</div>;
@@ -225,48 +279,22 @@ export default function DoctorTerminal() {
             </div>
           </div>
           
-          <div className="flex-1 overflow-y-auto no-scrollbar px-4 pb-4 space-y-2">
-            {filteredPatients.map((p) => {
-              const isSelected = selected?._id === p._id;
-              const isUrgent = p.vitals.spO2 < 92;
-              
-              return (
-                <button
-                  key={p._id}
-                  onClick={() => setSelected(p)}
-                  className={`w-full text-left p-4 rounded-2xl transition-all relative overflow-hidden ${
-                    isSelected
-                      ? "bg-teal-700 shadow-md border border-teal-500/30"
-                      : "bg-teal-800/40 hover:bg-teal-800/80 border border-transparent"
-                  }`}
-                >
-                  {isUrgent && (
-                    <div className="absolute top-0 right-0 w-8 h-8 bg-rose-500 rounded-bl-full flex items-start justify-end pr-1.5 pt-1.5">
-                       <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                    </div>
-                  )}
-                  <div className="flex justify-between items-start mb-1 pr-6">
-                    <span className="font-bold text-white text-base">{p.name}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-xs text-teal-200 font-medium mb-3">
-                    <span>{p.age}y · {p.gender}</span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" /> {p.waitTime}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between pt-3 border-t border-teal-700/50">
-                    <span className="text-[10px] font-bold text-teal-400 tracking-widest uppercase">SpO2</span>
-                    <span
-                      className={`text-sm font-black ${
-                        isUrgent ? "text-rose-400" : "text-white"
-                      }`}
-                    >
-                      {p.vitals.spO2}%
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
+          <div className="flex-1 overflow-y-auto no-scrollbar px-4 pb-4 space-y-4">
+            <div>
+              <h3 className="text-xs font-bold text-teal-300 uppercase tracking-widest mb-2 ml-2">Waiting ({waitingPatients.length})</h3>
+              <div className="space-y-2">
+                {waitingPatients.map((p) => renderPatientCard(p, false))}
+              </div>
+            </div>
+
+            {completedPatients.length > 0 && (
+              <div>
+                <h3 className="text-xs font-bold text-teal-300 uppercase tracking-widest mb-2 ml-2 mt-4">Completed ({completedPatients.length})</h3>
+                <div className="space-y-2">
+                  {completedPatients.map((p) => renderPatientCard(p, true))}
+                </div>
+              </div>
+            )}
           </div>
         </aside>
 

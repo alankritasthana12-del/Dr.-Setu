@@ -62,7 +62,13 @@ Important: Start your response with a clear, bold disclaimer that this is an AI-
           generationConfig: {
             temperature: 0.2,
             maxOutputTokens: 500,
-          }
+          },
+          safetySettings: [
+            {
+              category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+              threshold: "BLOCK_NONE"
+            }
+          ]
         }),
       }
     );
@@ -75,6 +81,11 @@ Important: Start your response with a clear, bold disclaimer that this is an AI-
 
     const data = await res.json();
     const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    
+    if (!raw) {
+      console.error('[Gemini Prescription] Missing text in response:', JSON.stringify(data, null, 2));
+    }
+    
     return raw || null;
   } catch (err: any) {
     clearTimeout(timeout);
