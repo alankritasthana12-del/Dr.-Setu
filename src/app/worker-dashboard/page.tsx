@@ -25,7 +25,8 @@ import {
   X,
   Users,
   Plus,
-  PhoneCall
+  PhoneCall,
+  Printer
 } from "lucide-react";
 import { type TriageResult, type Patient } from "@/lib/types";
 import VideoCall from "@/components/VideoCall";
@@ -157,7 +158,7 @@ function TriageReport({ result, patientId, onStartCall }: { result: TriageResult
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden slide-up h-full flex flex-col">
+    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden slide-up h-full flex flex-col" id="prescription-content">
       <div
         className={`px-6 py-5 border-b shrink-0 ${
           isRed
@@ -242,6 +243,16 @@ function TriageReport({ result, patientId, onStartCall }: { result: TriageResult
               {result.doctorNotes}
             </div>
             
+            <div className="flex items-center gap-3 mb-4">
+              <button
+                onClick={() => window.print()}
+                className="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-lg shadow-sm transition-colors flex items-center gap-2 text-sm"
+              >
+                <Printer className="w-4 h-4" />
+                Print Prescription
+              </button>
+            </div>
+
             {!substitutes ? (
               <button
                 onClick={handleFindSubstitutes}
@@ -273,6 +284,17 @@ function TriageReport({ result, patientId, onStartCall }: { result: TriageResult
             <div className="text-slate-700 leading-relaxed font-medium whitespace-pre-line text-sm mb-4">
               {prescription}
             </div>
+
+            <div className="flex items-center gap-3 mb-4">
+              <button
+                onClick={() => window.print()}
+                className="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-lg shadow-sm transition-colors flex items-center gap-2 text-sm"
+              >
+                <Printer className="w-4 h-4" />
+                Print Prescription
+              </button>
+            </div>
+
             {!substitutes ? (
               <button
                 onClick={handleFindSubstitutes}
@@ -319,8 +341,8 @@ function TriageReport({ result, patientId, onStartCall }: { result: TriageResult
 
 function SkeletonReport() {
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 h-full">
-      <div className="flex items-center gap-5 mb-8">
+    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col h-full slide-up" id="prescription-content">
+      <div className="p-6 sm:p-8 flex items-center justify-between border-b border-slate-100 shrink-0">
         <div className="w-16 h-16 rounded-full skeleton-shimmer" />
         <div className="space-y-3 flex-1">
           <div className="h-6 bg-slate-200 rounded-full skeleton-shimmer w-1/2" />
