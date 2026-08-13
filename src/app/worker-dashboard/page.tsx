@@ -118,10 +118,10 @@ function TriageReport({ result, patientId, onStartCall }: { result: TriageResult
   }, [result]);
 
   const handleFindSubstitutes = async () => {
-    if (!prescription) return;
+    const textToAnalyze = result.doctorNotes || prescription;
+    if (!textToAnalyze) return;
     setFindingSubstitutes(true);
     try {
-      const textToAnalyze = prescription;
       const res = await fetch("/api/medicine-substitutes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -238,13 +238,33 @@ function TriageReport({ result, patientId, onStartCall }: { result: TriageResult
               <CheckCircle className="w-4 h-4" />
               Doctor's Prescription & Sign-Off
             </h3>
-            <div className="text-slate-800 leading-relaxed font-bold whitespace-pre-line text-sm bg-white p-4 rounded-xl border border-indigo-100 shadow-sm">
+            <div className="text-slate-800 leading-relaxed font-bold whitespace-pre-line text-sm bg-white p-4 rounded-xl border border-indigo-100 shadow-sm mb-4">
               {result.doctorNotes}
             </div>
+            
+            {!substitutes ? (
+              <button
+                onClick={handleFindSubstitutes}
+                disabled={findingSubstitutes}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50 font-bold py-2 px-4 rounded-lg shadow-sm transition-colors flex items-center gap-2 text-sm"
+              >
+                <Search className="w-4 h-4" />
+                {findingSubstitutes ? "Finding Substitutes..." : "Find Medicine Substitutes"}
+              </button>
+            ) : (
+              <div className="mt-4 p-4 bg-white rounded-lg border border-teal-100 shadow-sm">
+                <h4 className="text-sm font-bold text-indigo-800 mb-2 flex items-center gap-2">
+                  <Search className="w-4 h-4" /> Suggested Substitutes
+                </h4>
+                <div className="text-slate-700 text-sm whitespace-pre-line leading-relaxed font-medium">
+                  {substitutes}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
-        {prescription ? (
+        {prescription && !result.doctorNotes ? (
           <div className="p-6 border-b border-slate-100 bg-teal-50/50">
             <h3 className="text-xs font-bold text-teal-800 uppercase tracking-widest flex items-center gap-2 mb-3">
               <FileText className="w-4 h-4" />
@@ -273,7 +293,7 @@ function TriageReport({ result, patientId, onStartCall }: { result: TriageResult
               </div>
             )}
           </div>
-        ) : (
+        ) : !prescription && !result.doctorNotes ? (
           <div className="p-6 border-b border-slate-100 flex flex-col items-start gap-3">
             <p className="text-sm text-slate-600 font-medium">Is a doctor not available for instant consultation?</p>
             <button 
@@ -284,7 +304,7 @@ function TriageReport({ result, patientId, onStartCall }: { result: TriageResult
               {generatingPrescription ? "Generating..." : "Need Instant Prescription?"}
             </button>
           </div>
-        )}
+        ) : null}
       </div>
 
       <div className="px-6 py-4 bg-slate-50 flex items-start gap-3 shrink-0 border-t border-slate-100">

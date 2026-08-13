@@ -25,7 +25,7 @@ import { useEffect } from "react";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 
 export default function DoctorTerminal() {
-  const { isAuthenticated, isLoading: authLoading } = useKindeBrowserClient();
+  const { isAuthenticated, isLoading: authLoading, user } = useKindeBrowserClient();
   const [patients, setPatients] = useState<Patient[]>([]);
   const [selected, setSelected] = useState<Patient | null>(null);
   const [search, setSearch] = useState("");
@@ -157,8 +157,9 @@ export default function DoctorTerminal() {
 
   const filteredPatients = patients.filter(
     (p) =>
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.symptoms.join(" ").toLowerCase().includes(search.toLowerCase())
+      p.status !== "completed" &&
+      (p.name.toLowerCase().includes(search.toLowerCase()) ||
+      p.symptoms.join(" ").toLowerCase().includes(search.toLowerCase()))
   ).sort((a, b) => {
     const riskMap = { RED: 0, YELLOW: 1, GREEN: 2 };
     return riskMap[a.triageLevel] - riskMap[b.triageLevel];
@@ -189,9 +190,11 @@ export default function DoctorTerminal() {
           </div>
         </div>
         <div className="flex items-center gap-4 text-sm font-bold text-slate-600">
-          <div className="px-4 py-1.5 bg-slate-100 rounded-full border border-slate-200">
-            Dr. Sharma (Cardiology)
-          </div>
+          {user && (
+            <div className="px-4 py-1.5 bg-slate-100 rounded-full border border-slate-200">
+              Dr. {user.given_name || user.family_name || "Doctor"}
+            </div>
+          )}
           <span className="flex items-center gap-2 text-teal-600 bg-teal-50 px-4 py-1.5 rounded-full border border-teal-200">
             <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
             Active Shift
@@ -426,7 +429,12 @@ export default function DoctorTerminal() {
                         </div>
                         <p className="text-sm font-bold text-slate-700">Document Scan Available</p>
                         <p className="text-xs text-slate-500 mt-1 font-medium">AI successfully extracted text from the upload.</p>
-                        <button className="mt-4 text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 px-4 py-2 rounded-full transition-colors border border-teal-200">View Document</button>
+                        <button 
+                          onClick={() => window.open(selected.imageUrl, '_blank')}
+                          className="mt-4 text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 px-4 py-2 rounded-full transition-colors border border-teal-200"
+                        >
+                          View Document
+                        </button>
                       </div>
                     ) : (
                       <p className="text-sm text-slate-500 font-medium italic bg-slate-50 p-4 rounded-xl">No external documents or scans uploaded for this patient.</p>
@@ -480,7 +488,7 @@ export default function DoctorTerminal() {
                               alert("Chart saved and signed off successfully!");
                               setRxNotes("");
                               setPatients(pts => pts.map(p => p._id === selected._id ? { ...p, status: "completed", doctorNotes: rxNotes } : p));
-                              setSelected(prev => prev ? { ...prev, status: "completed", doctorNotes: rxNotes } : null);
+                              setSelected(null);
                             } else {
                               alert("Failed to save chart.");
                             }
