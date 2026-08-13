@@ -15,10 +15,10 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: true, data: text });
     }
 
-    const apiKey = process.env.GROQ_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
         return NextResponse.json(
-            { success: false, error: 'GROQ_API_KEY is not configured' },
+            { success: false, error: 'GEMINI_API_KEY is not configured' },
             { status: 500 }
         );
     }
@@ -32,26 +32,26 @@ ${text}
 
 Translation:`;
 
-    const res = await fetch(`https://api.groq.com/openai/v1/chat/completions`, {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'user', content: promptText }],
-        temperature: 0,
+        contents: [{ parts: [{ text: promptText }] }],
+        generationConfig: {
+          temperature: 0.1,
+        }
       })
     });
 
     if (!res.ok) {
        console.error('[Translation API] HTTP error:', res.status, await res.text());
-       throw new Error('Failed to fetch translation from Groq');
+       throw new Error('Failed to fetch translation from Gemini');
     }
 
     const data = await res.json();
-    const translatedContent = data?.choices?.[0]?.message?.content;
+    const translatedContent = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
     return NextResponse.json({ success: true, data: translatedContent });
   } catch (error: any) {

@@ -35,6 +35,14 @@ export default function DoctorTerminal() {
   const [findingSubstitutes, setFindingSubstitutes] = useState(false);
   const [substitutes, setSubstitutes] = useState<string | null>(null);
 
+  // Translation states
+  const [selectedLanguage, setSelectedLanguage] = useState<string>("Hindi");
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [showTranslation, setShowTranslation] = useState(false);
+  const [translatedSummary, setTranslatedSummary] = useState<string | null>(null);
+  const [translatedGuidance, setTranslatedGuidance] = useState<string | null>(null);
+  const [translatedPrescription, setTranslatedPrescription] = useState<string | null>(null);
+
   const handleFindSubstitutes = async () => {
     const textToAnalyze = `${rxNotes}\n\n${selected?.aiPrescription || ""}`;
     if (!textToAnalyze.trim()) return;
@@ -54,6 +62,65 @@ export default function DoctorTerminal() {
       console.error(err);
     }
     setFindingSubstitutes(false);
+  };
+
+  useEffect(() => {
+    setShowTranslation(false);
+    setTranslatedSummary(null);
+    setTranslatedGuidance(null);
+    setTranslatedPrescription(null);
+  }, [selected, selectedLanguage]);
+
+  const handleTranslate = async () => {
+    if (!selected) return;
+    
+    if (showTranslation && translatedSummary) {
+      setShowTranslation(false);
+      return;
+    }
+
+    if (translatedSummary) {
+      setShowTranslation(true);
+      return;
+    }
+
+    setIsTranslating(true);
+    try {
+      if (selected.aiSummary) {
+        const sumRes = await fetch("/api/translate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: selected.aiSummary, targetLanguage: selectedLanguage })
+        });
+        const sumData = await sumRes.json();
+        if (sumData.success) setTranslatedSummary(sumData.data);
+      }
+
+      if (selected.firstAidGuidance) {
+        const guiRes = await fetch("/api/translate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: selected.firstAidGuidance, targetLanguage: selectedLanguage })
+        });
+        const guiData = await guiRes.json();
+        if (guiData.success) setTranslatedGuidance(guiData.data);
+      }
+
+      if (selected.aiPrescription) {
+        const preRes = await fetch("/api/translate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: selected.aiPrescription, targetLanguage: selectedLanguage })
+        });
+        const preData = await preRes.json();
+        if (preData.success) setTranslatedPrescription(preData.data);
+      }
+
+      setShowTranslation(true);
+    } catch (err) {
+      console.error("Translation error", err);
+    }
+    setIsTranslating(false);
   };
 
   useEffect(() => {
@@ -279,11 +346,37 @@ export default function DoctorTerminal() {
                 
                 <div className="flex flex-col gap-8">
                   <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col h-full">
-                    <div className="bg-teal-50/50 border-b border-teal-100 p-5 flex items-center gap-3">
-                      <FileSearch className="w-5 h-5 text-teal-600" />
-                      <h3 className="text-sm font-bold text-teal-900 uppercase tracking-widest">
-                        AI Assessment
-                      </h3>
+                    <div className="bg-teal-50/50 border-b border-teal-100 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <FileSearch className="w-5 h-5 text-teal-600" />
+                        <h3 className="text-sm font-bold text-teal-900 uppercase tracking-widest">
+                          AI Assessment
+                        </h3>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={selectedLanguage}
+                          onChange={(e) => setSelectedLanguage(e.target.value)}
+                          className="bg-white border border-teal-200 text-teal-800 text-xs rounded-md px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold"
+                        >
+                          <option value="Hindi">Hindi</option>
+                          <option value="Marathi">Marathi</option>
+                          <option value="Gujarati">Gujarati</option>
+                          <option value="Tamil">Tamil</option>
+                          <option value="Telugu">Telugu</option>
+                          <option value="Kannada">Kannada</option>
+                          <option value="Bengali">Bengali</option>
+                          <option value="English">English</option>
+                        </select>
+                        <button
+                          onClick={handleTranslate}
+                          disabled={isTranslating}
+                          className="bg-teal-100 hover:bg-teal-200 text-teal-700 disabled:opacity-50 font-bold py-1.5 px-3 rounded shadow-sm transition-colors text-xs flex items-center gap-1"
+                        >
+                          {isTranslating ? "Translating..." : showTranslation ? "Show Original" : "Translate"}
+                        </button>
+                      </div>
                     </div>
                     <div className="p-6 space-y-6 text-sm text-slate-700 font-medium flex-1">
                       <div>
@@ -296,11 +389,15 @@ export default function DoctorTerminal() {
                       </div>
                       <div>
                         <strong className="block text-[11px] text-slate-400 uppercase tracking-widest mb-2">Clinical Summary</strong>
-                        <p className="leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">{selected.aiSummary}</p>
+                        <p className="leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
+                          {showTranslation && translatedSummary ? translatedSummary : selected.aiSummary}
+                        </p>
                       </div>
                       <div>
                         <strong className="block text-[11px] text-slate-400 uppercase tracking-widest mb-2">Worker Actions Taken</strong>
-                        <p className="leading-relaxed whitespace-pre-line text-xs">{selected.firstAidGuidance}</p>
+                        <p className="leading-relaxed whitespace-pre-line text-xs">
+                          {showTranslation && translatedGuidance ? translatedGuidance : selected.firstAidGuidance}
+                        </p>
                       </div>
                       {selected.aiPrescription && (
                         <div>
@@ -308,7 +405,7 @@ export default function DoctorTerminal() {
                              <FileText className="w-3 h-3" /> AI Provisional Prescription
                            </strong>
                            <div className="leading-relaxed whitespace-pre-line text-xs bg-teal-50 p-4 rounded-xl border border-teal-100 font-mono max-h-48 overflow-y-auto">
-                             {selected.aiPrescription}
+                             {showTranslation && translatedPrescription ? translatedPrescription : selected.aiPrescription}
                            </div>
                         </div>
                       )}

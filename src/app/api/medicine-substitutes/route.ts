@@ -9,9 +9,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Prescription text is required' }, { status: 400 });
     }
 
-    const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-    if (!OPENROUTER_API_KEY) {
-      return NextResponse.json({ error: 'OpenRouter API Key missing' }, { status: 500 });
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+    if (!GEMINI_API_KEY) {
+      return NextResponse.json({ error: 'Gemini API Key missing' }, { status: 500 });
     }
 
     const prompt = `You are a clinical AI assisting a rural healthcare worker.
@@ -28,21 +28,19 @@ Provide the response in clean markdown format, structured as a list of original 
     const timeout = setTimeout(() => controller.abort(), 15000);
 
     const res = await fetch(
-      `https://openrouter.ai/api/v1/chat/completions`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-          'HTTP-Referer': 'http://localhost:3000',
-          'X-Title': 'Dr. Setu'
+          'Content-Type': 'application/json'
         },
         signal: controller.signal,
         body: JSON.stringify({
-          model: "meta-llama/llama-3.3-70b-instruct",
-          messages: [{ role: "user", content: prompt }],
-          temperature: 0.2,
-          max_tokens: 800,
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.2,
+            maxOutputTokens: 800,
+          }
         }),
       }
     );
@@ -54,7 +52,7 @@ Provide the response in clean markdown format, structured as a list of original 
     }
 
     const data = await res.json();
-    const raw = data?.choices?.[0]?.message?.content;
+    const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     
     return NextResponse.json({
       success: true,
