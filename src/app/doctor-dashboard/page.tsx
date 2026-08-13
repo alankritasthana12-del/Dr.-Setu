@@ -22,10 +22,10 @@ import {
 import { type Patient } from "@/lib/types";
 import VideoCall from "@/components/VideoCall";
 import { useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 
 export default function DoctorTerminal() {
-  const { status } = useSession({ required: true });
+  const { isAuthenticated, isLoading: authLoading } = useKindeBrowserClient();
   const [patients, setPatients] = useState<Patient[]>([]);
   const [selected, setSelected] = useState<Patient | null>(null);
   const [search, setSearch] = useState("");
@@ -74,7 +74,7 @@ export default function DoctorTerminal() {
     return riskMap[a.triageLevel] - riskMap[b.triageLevel];
   });
 
-  if (status === "loading") {
+  if (authLoading || !isAuthenticated) {
     return <div className="h-screen bg-slate-50 flex items-center justify-center font-bold text-teal-700 text-xl">Loading...</div>;
   }
 

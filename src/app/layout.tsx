@@ -16,7 +16,7 @@ const interFont = localFont({
   display: "swap",
 });
 
-import AuthProvider from "@/components/SessionProvider";
+
 
 export const metadata: Metadata = {
   title: "Dr. Setu — AI-Powered Virtual Clinic",
@@ -34,7 +34,6 @@ export default function RootLayout({
   return (
     <html lang="en" className={interFont.variable}>
       <body className="bg-slate-50 text-slate-900 antialiased min-h-screen">
-        <AuthProvider>
           {children}
           <Toaster
             richColors
@@ -47,7 +46,6 @@ export default function RootLayout({
               },
             }}
           />
-        </AuthProvider>
       </body>
     </html>
   );

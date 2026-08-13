@@ -20,14 +20,15 @@ export async function POST(req: Request) {
     }
 
     if (dbAvailable) {
-      const { getServerSession } = await import('next-auth');
-      const { authOptions } = await import('@/lib/auth');
-      const session = await getServerSession(authOptions);
+      const { getKindeServerSession } = await import('@kinde-oss/kinde-auth-nextjs/server');
+      const { getUser } = getKindeServerSession();
+      const user = await getUser();
+      const userId = user?.id;
       
       const Patient = (await import('@/models/Patient')).default;
       const newPatient = new Patient({
         ...body,
-        workerId: (session?.user as any)?.id || '',
+        workerId: userId || '',
       });
       await newPatient.save();
       console.log('[Patient] Saved to MongoDB:', newPatient._id);

@@ -1,15 +1,17 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || !(session.user as any)?.id) {
+    const { getUser } = getKindeServerSession();
+    const user = await getUser();
+    const userId = user?.id;
+    
+    if (!userId) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const workerId = (session.user as any).id;
+    const workerId = userId;
     const dbConnect = (await import('@/lib/mongodb')).default;
     await dbConnect();
     

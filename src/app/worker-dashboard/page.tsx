@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import Link from "next/link";
 import {
   Mic,
@@ -376,7 +376,7 @@ function SkeletonReport() {
 
 /* ─── Main View ─────────────────────────────────────────────────────────────── */
 export default function WorkerIntakeApp() {
-  const { status } = useSession({ required: true });
+  const { isAuthenticated, isLoading: authLoading } = useKindeBrowserClient();
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
   const [isListening, setIsListening] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -389,7 +389,7 @@ export default function WorkerIntakeApp() {
   const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
-    if (status !== "authenticated") return;
+    if (!isAuthenticated) return;
     
     let isMounted = true;
     const fetchCurrentPatient = async () => {
@@ -437,7 +437,7 @@ export default function WorkerIntakeApp() {
       isMounted = false;
       clearInterval(interval);
     };
-  }, [status, videoUrl, triage, incomingCallUrl]);
+  }, [isAuthenticated, videoUrl, triage, incomingCallUrl]);
 
   const set = (k: keyof FormData, v: string) =>
     setForm((p) => ({ ...p, [k]: v }));
@@ -588,7 +588,7 @@ export default function WorkerIntakeApp() {
     }
   };
 
-  if (status === "loading") {
+  if (authLoading || !isAuthenticated) {
     return <div className="min-h-screen bg-slate-50 flex items-center justify-center font-bold text-teal-700 text-xl">Loading...</div>;
   }
 
