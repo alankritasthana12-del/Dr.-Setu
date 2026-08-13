@@ -25,7 +25,7 @@ ${prescription}
 Provide the response in clean markdown format, structured as a list of original medicines with their salts and substitutes. Start your response with a clear, bold disclaimer that a pharmacist or doctor must confirm the substitution before dispensing.`;
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
+    const timeout = setTimeout(() => controller.abort(), 30000);
 
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${GEMINI_API_KEY}`,
@@ -39,8 +39,14 @@ Provide the response in clean markdown format, structured as a list of original 
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             temperature: 0.2,
-            maxOutputTokens: 800,
-          }
+            maxOutputTokens: 2048,
+          },
+          safetySettings: [
+            {
+              category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+              threshold: "BLOCK_NONE"
+            }
+          ]
         }),
       }
     );
@@ -53,7 +59,11 @@ Provide the response in clean markdown format, structured as a list of original 
 
     const data = await res.json();
     const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    
+
+    if (!raw) {
+      console.error('[Gemini Substitutes] Missing text in response:', JSON.stringify(data, null, 2));
+    }
+
     return NextResponse.json({
       success: true,
       data: raw || "No substitutes found.",
