@@ -80,25 +80,24 @@ export default function VideoCall({ roomUrl, onLeave }: VideoCallProps) {
         </div>
       </div>
 
-      {/* ── MAIN PANEL ── */}
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center gap-6">
-        <div className="w-24 h-24 bg-teal-900/50 border-2 border-teal-500/40 rounded-full flex items-center justify-center mb-2">
+        <div className="w-24 h-24 bg-teal-900/50 border-2 border-teal-500/40 rounded-full flex items-center justify-center mb-2 animate-pulse">
           <Video className="w-12 h-12 text-teal-400" />
         </div>
         <div>
-          <h3 className="text-xl font-black text-white mb-2">
+          <h3 className="text-2xl font-black text-white mb-3">
             Telemedicine Room Ready
           </h3>
-          <p className="text-slate-400 text-sm font-medium max-w-xs leading-relaxed">
-            Click below to open the secure video room in a new tab. Both the health worker and doctor must open this link to connect.
+          <p className="text-slate-400 text-sm font-medium max-w-md mx-auto leading-relaxed">
+            A secure video consultation channel has been established. Click the button below to join the room. Both parties must join to begin the session.
           </p>
         </div>
         <button
           onClick={() => window.open(roomUrl, "_blank", "noopener,noreferrer")}
-          className="flex items-center gap-3 bg-teal-600 hover:bg-teal-500 text-white font-black text-base px-8 py-4 rounded-full shadow-xl transition-all active:scale-95 hover:shadow-teal-500/30 hover:shadow-2xl"
+          className="mt-4 flex items-center gap-3 bg-green-600 hover:bg-green-500 text-white font-black text-xl px-12 py-5 rounded-full shadow-[0_0_40px_-10px_rgba(34,197,94,0.5)] transition-all active:scale-95 hover:shadow-[0_0_60px_-15px_rgba(34,197,94,0.7)]"
         >
-          <ExternalLink className="w-5 h-5" />
-          Open Video Call
+          <ExternalLink className="w-6 h-6" />
+          JOIN VIDEO CALL NOW
         </button>
       </div>
     </div>
