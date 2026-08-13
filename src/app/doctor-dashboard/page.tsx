@@ -32,6 +32,29 @@ export default function DoctorTerminal() {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [rxNotes, setRxNotes] = useState("");
+  const [findingSubstitutes, setFindingSubstitutes] = useState(false);
+  const [substitutes, setSubstitutes] = useState<string | null>(null);
+
+  const handleFindSubstitutes = async () => {
+    const textToAnalyze = `${rxNotes}\n\n${selected?.aiPrescription || ""}`;
+    if (!textToAnalyze.trim()) return;
+    
+    setFindingSubstitutes(true);
+    try {
+      const res = await fetch("/api/medicine-substitutes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prescription: textToAnalyze }),
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        setSubstitutes(data.data);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    setFindingSubstitutes(false);
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -279,6 +302,16 @@ export default function DoctorTerminal() {
                         <strong className="block text-[11px] text-slate-400 uppercase tracking-widest mb-2">Worker Actions Taken</strong>
                         <p className="leading-relaxed whitespace-pre-line text-xs">{selected.firstAidGuidance}</p>
                       </div>
+                      {selected.aiPrescription && (
+                        <div>
+                           <strong className="block text-[11px] text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                             <FileText className="w-3 h-3" /> AI Provisional Prescription
+                           </strong>
+                           <div className="leading-relaxed whitespace-pre-line text-xs bg-teal-50 p-4 rounded-xl border border-teal-100 font-mono max-h-48 overflow-y-auto">
+                             {selected.aiPrescription}
+                           </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -304,11 +337,21 @@ export default function DoctorTerminal() {
                   </div>
 
                   <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex-1 flex flex-col">
-                    <div className="bg-slate-50 border-b border-slate-100 p-5 flex items-center gap-3">
-                      <PenTool className="w-5 h-5 text-slate-500" />
-                      <h3 className="text-sm font-bold text-slate-800 uppercase tracking-widest">
-                        Doctor's Review & Sign-Off
-                      </h3>
+                    <div className="bg-slate-50 border-b border-slate-100 p-5 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <PenTool className="w-5 h-5 text-slate-500" />
+                        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-widest">
+                          Doctor's Review & Sign-Off
+                        </h3>
+                      </div>
+                      <button
+                        onClick={handleFindSubstitutes}
+                        disabled={findingSubstitutes}
+                        className="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 disabled:opacity-50 font-bold py-1.5 px-3 rounded shadow-sm transition-colors flex items-center gap-2 text-xs"
+                      >
+                        <Search className="w-3 h-3" />
+                        {findingSubstitutes ? "Finding..." : "Find Substitutes"}
+                      </button>
                     </div>
                     <div className="p-6 flex-1 flex flex-col gap-5">
                       <textarea
@@ -317,6 +360,16 @@ export default function DoctorTerminal() {
                         placeholder="Enter official diagnosis, prescription details, and follow-up instructions..."
                         className="flex-1 w-full p-5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 teal-input-focus font-medium resize-none min-h-[150px]"
                       />
+                      {substitutes && (
+                        <div className="p-4 bg-white rounded-lg border border-teal-100 shadow-sm overflow-y-auto max-h-48">
+                          <h4 className="text-sm font-bold text-indigo-800 mb-2 flex items-center gap-2">
+                            <Search className="w-4 h-4" /> Suggested Substitutes
+                          </h4>
+                          <div className="text-slate-700 text-sm whitespace-pre-line leading-relaxed font-medium">
+                            {substitutes}
+                          </div>
+                        </div>
+                      )}
                       <button className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 rounded-full flex items-center justify-center gap-2 transition-transform active:scale-[0.98] shadow-md text-base">
                         <CheckCircle className="w-5 h-5" /> Save Chart & Sign-Off
                       </button>

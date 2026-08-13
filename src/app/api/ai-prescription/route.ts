@@ -25,8 +25,8 @@ async function tryDbConnect() {
 }
 
 async function callGeminiForPrescription(symptoms: string[], vitals: any, aiSummary: string) {
-  const CEREBRAS_API_KEY = process.env.CEREBRAS_API_KEY;
-  if (!CEREBRAS_API_KEY) return null;
+  const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+  if (!OPENROUTER_API_KEY) return null;
 
   const prompt = `You are a clinical AI assisting a rural healthcare worker. The doctor is currently unavailable, and the worker needs an instant provisional prescription for the patient.
 
@@ -50,19 +50,21 @@ Important: Start your response with a clear, bold disclaimer that this is an AI-
 
   try {
     const res = await fetch(
-      `https://api.cerebras.ai/v1/chat/completions`,
+      `https://openrouter.ai/api/v1/chat/completions`,
       {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${CEREBRAS_API_KEY}`
+          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+          'HTTP-Referer': 'http://localhost:3000',
+          'X-Title': 'Dr. Setu'
         },
         signal: controller.signal,
         body: JSON.stringify({
-          model: "llama-3.3-70b",
+          model: "meta-llama/llama-3.3-70b-instruct",
           messages: [{ role: "user", content: prompt }],
           temperature: 0.2,
-          max_completion_tokens: 500,
+          max_tokens: 500,
         }),
       }
     );
