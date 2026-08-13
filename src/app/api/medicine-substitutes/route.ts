@@ -34,7 +34,7 @@ Provide the response in clean markdown format, structured as a list of original 
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-          'HTTP-Referer': 'http://localhost:3002',
+          'HTTP-Referer': 'http://localhost:3000',
           'X-Title': 'Dr. Setu'
         },
         signal: controller.signal,
