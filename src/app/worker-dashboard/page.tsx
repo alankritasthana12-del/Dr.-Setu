@@ -693,14 +693,8 @@ export default function WorkerIntakeApp() {
           {selected === null ? (
             <div className="flex-1 overflow-y-auto p-6 sm:p-10">
               <div className="max-w-4xl mx-auto">
-                <div className="flex items-center justify-between mb-8">
+                <div className="mb-8">
                   <h2 className="text-2xl font-black text-slate-800">New Patient Intake</h2>
-                  <button
-                    onClick={() => setForm(DEMO_PATIENT)}
-                    className="text-sm font-bold bg-teal-100 text-teal-800 hover:bg-teal-200 px-4 py-2 rounded-full transition-colors border border-teal-200 shadow-sm"
-                  >
-                    Load Demo Patient
-                  </button>
                 </div>
 
                 <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 mb-8">
